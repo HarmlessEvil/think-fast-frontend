@@ -1,0 +1,11 @@
+.player-list {
+    @apply w-full max-w-md border overflow-y-auto max-h-64;
+}
+
+.player-list li {
+    @apply flex justify-between py-2 px-4;
+
+    &:not(:last-child) {
+        @apply border-b;
+    }
+}

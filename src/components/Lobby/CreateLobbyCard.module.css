@@ -1,0 +1,15 @@
+.card {
+    @apply p-6 w-full md:w-1/2;
+}
+
+.card h2 {
+    @apply text-2xl font-semibold mb-4;
+}
+
+.card p {
+    @apply mb-4;
+}
+
+.card button {
+    @apply font-bold py-2 px-4 w-full;
+}

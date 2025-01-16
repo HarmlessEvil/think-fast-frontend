@@ -1,0 +1,27 @@
+.header {
+    @apply text-center py-4;
+}
+
+.header h1 {
+    @apply text-2xl font-bold;
+}
+
+.header p {
+    @apply text-sm;
+}
+
+.score {
+    @apply flex justify-center gap-4 mt-2;
+}
+
+.main {
+    @apply grid grid-cols-5 gap-2 p-4;
+}
+
+.footer {
+    @apply flex justify-center gap-4 py-4;
+}
+
+.footer button {
+    @apply py-2 px-4 border;
+}
