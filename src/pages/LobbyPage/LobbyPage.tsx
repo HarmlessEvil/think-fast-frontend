@@ -1,11 +1,12 @@
-import { useLoaderData, useParams } from 'react-router-dom';
+import urlJoin from 'proper-url-join';
+import { useParams, useRouteLoaderData } from 'react-router-dom';
 import { PlayerList } from '../../components/Lobby/PlayerList.tsx';
+import { loader } from '../LobbyPageLayout/LobbyPageLayoutRoute.ts';
 import styles from './LobbyPage.module.css';
-import { loader } from './LobbyPageRoute.ts';
 
 export const LobbyPage = () => {
   const { lobby: lobbyID } = useParams<'lobby'>();
-  const lobby = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const lobby = useRouteLoaderData('lobby-layout') as Awaited<ReturnType<typeof loader>>;
 
   return (
     <>
@@ -18,7 +19,7 @@ export const LobbyPage = () => {
         <PlayerList players={lobby.Players}/>
       </main>
 
-      <form action="/game/1" className={styles.footer}>
+      <form action={urlJoin(lobbyID, 'game', { leadingSlash: false })} className={styles.footer}>
         <button type="button">Ready</button>
         <button type="submit">Start Game</button>
       </form>

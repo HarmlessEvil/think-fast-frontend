@@ -1,9 +1,9 @@
 import styles from './PlayerList.module.css';
 
 type Player = {
-  ID: string;
-  Username: string
-  IsReady: boolean
+  id: string;
+  username: string
+  isReady: boolean
 }
 
 type Props = {
@@ -13,13 +13,13 @@ type Props = {
 export const PlayerList = ({ players }: Props) =>
   players && (
     <ul className={styles.playerList}>
-      {players.map(player => <PlayerListItem key={player.ID} player={player}/>)}
+      {players.map(player => <PlayerListItem key={player.id} player={player}/>)}
     </ul>
   );
 
 const PlayerListItem = ({ player }: { player: Player }) => (
   <li>
-    <span>{player.Username}</span>
-    <span>{!player.IsReady && 'Not'} Ready</span>
+    <span>{player.username}</span>
+    <span>{!player.isReady && 'Not'} Ready</span>
   </li>
 );
