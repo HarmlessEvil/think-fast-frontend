@@ -1,5 +1,5 @@
-import { CategoryHeader } from '../components/Game/CategoryHeader.tsx';
-import { QuestionValue } from '../components/Game/QuestionValue.tsx';
+import { CategoryHeader } from '../../components/Game/CategoryHeader.tsx';
+import { QuestionValue } from '../../components/Game/QuestionValue.tsx';
 import styles from './GamePage.module.css';
 
 export const GamePage = () => (

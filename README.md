@@ -14,11 +14,11 @@ format. The application is built using modern web technologies for seamless game
 
 ## Key Pages
 
-1. [Home Page](src/pages/HomePage.tsx):
+1. [Home Page](src/pages/HomePage/HomePage.tsx):
     * Join an existing lobby or create a new one.
-2. [Lobby Page](src/pages/LobbyPage.tsx):
+2. [Lobby Page](src/pages/LobbyPage/LobbyPage.tsx):
     * Displays the player list, ready/unready status, and start game button.
-3. [Game Page](src/pages/GamePage.tsx):
+3. [Game Page](src/pages/GamePage/GamePage.tsx):
     * Interactive question grid and action buttons for gameplay.
 
 ## Technologies Used

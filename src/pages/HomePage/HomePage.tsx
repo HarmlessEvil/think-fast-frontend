@@ -1,5 +1,5 @@
-import { CreateLobbyCard } from '../components/Lobby/CreateLobbyCard.tsx';
-import { JoinLobbyCard } from '../components/Lobby/JoinLobbyCard.tsx';
+import { CreateLobbyCard } from '../../components/Lobby/CreateLobbyCard.tsx';
+import { JoinLobbyCard } from '../../components/Lobby/JoinLobbyCard.tsx';
 import styles from './HomePage.module.css';
 
 export const HomePage = () => (
@@ -15,3 +15,4 @@ export const HomePage = () => (
     </main>
   </>
 );
+
