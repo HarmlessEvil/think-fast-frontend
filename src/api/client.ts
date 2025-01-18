@@ -5,9 +5,21 @@ export const request = async <T>(
   options: RequestInit = {},
 ): Promise<T> => {
   const response = await fetch(urlJoin('/api/', endpoint), {
-    headers: new Headers({ 'Content-Type': 'application/json' }),
     ...options,
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
+
+  if (response.status === 401) {
+    const url = new URL('/login', window.location.origin);
+    url.searchParams.set('redirect', encodeURI(window.location.pathname));
+
+    window.location.assign(url);
+    throw new Error('Unauthorized');
+  }
 
   if (!response.ok) {
     throw new Error(await response.text());

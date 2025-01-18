@@ -1,0 +1,27 @@
+.page {
+    @apply flex flex-col items-center justify-center h-full p-4;
+}
+
+.page h1 {
+    @apply text-xl font-bold text-center;
+}
+
+.page p {
+    @apply text-center;
+}
+
+.page form {
+    @apply w-full max-w-sm space-y-4;
+}
+
+.page input {
+    @apply border p-2 w-full mb-4;
+}
+
+.page label {
+    @apply block;
+}
+
+.page button {
+    @apply w-full;
+}

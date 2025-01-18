@@ -6,6 +6,8 @@ import { action as homePageAction } from './pages/HomePage/HomePageRoute.ts';
 import { LobbyPage } from './pages/LobbyPage/LobbyPage.tsx';
 import { loader as lobbyPageLayoutLoader } from './pages/LobbyPageLayout/LobbyPageLayoutRoute.ts';
 import { LobbyPageLayout } from './pages/LobbyPageLayout/LobbyPageLayout.tsx';
+import { LoginPage } from './pages/LoginPage/LoginPage.tsx';
+import { action as loginPageAction } from './pages/LoginPage/LoginPageRoute.ts';
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +18,11 @@ export const router = createBrowserRouter([
         index: true,
         element: <HomePage/>,
         action: homePageAction,
+      },
+      {
+        path: 'login',
+        element: <LoginPage/>,
+        action: loginPageAction,
       },
       {
         id: 'lobby-layout',

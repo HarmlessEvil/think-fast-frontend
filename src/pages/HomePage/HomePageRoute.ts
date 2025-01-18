@@ -3,7 +3,7 @@ import { ActionFunction, redirect } from 'react-router-dom';
 import { createLobby, joinLobby } from '../../components/Lobby/api.ts';
 import { schema as joinLobbySchema } from '../../components/Lobby/JoinLobbySchema.ts';
 
-export const action: ActionFunction = async ({ request }): Promise<unknown> => {
+export const action: ActionFunction = async ({ request }): Promise<Response> => {
   const formData = await request.formData();
   switch (formData.get("intent")) {
     case "create-lobby": {

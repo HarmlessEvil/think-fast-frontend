@@ -1,3 +1,11 @@
+.app {
+    @apply flex flex-col items-center justify-center h-full w-full;
+}
+
+.app main {
+    @apply flex-grow;
+}
+
 .footer {
     @apply text-sm text-center py-4;
 }
