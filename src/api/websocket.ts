@@ -1,39 +1,48 @@
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 import { z } from 'zod';
 
 export class WebsocketManager {
+  private isClosed: boolean = false;
   private socket: WebSocket | null = null;
   private timeout: number | null = null;
+
   private readonly handlers: { [E in GameEvent as E['type']]?: (data: E['data']) => void } = {};
 
-  constructor(url: string) {
-    this.connect(url);
-  }
-
-  private connect(url: string) {
-    this.timeout = null;
-    this.socket = new WebSocket(url);
-
-    this.socket.onmessage = (event) => {
-      const message = gameEventSchema.parse(JSON.parse(event.data));
-      const handler = this.handlers[message.type];
-
-      if (handler) {
-        handler(message.data as never);
-      }
-    };
-
-    this.socket.onclose = () => {
-      this.timeout = setTimeout(() => this.connect(url), 3_000);
-    };
+  constructor(private readonly url: string) {
+    this.connect();
   }
 
   close() {
+    this.isClosed = true;
+
     if (this.timeout !== null) {
       clearTimeout(this.timeout);
     }
 
     this.socket?.close();
+  }
+
+  private connect() {
+    this.timeout = null;
+    this.socket = new WebSocket(this.url);
+
+    this.socket.onmessage = (event) => this.handleMessage(event);
+    this.socket.onclose = () => this.handleClose();
+  }
+
+  private handleMessage(event: MessageEvent) {
+    const message = gameEventSchema.parse(JSON.parse(event.data));
+    const handler = this.handlers[message.type];
+
+    if (handler) {
+      handler(message.data as never);
+    }
+  }
+
+  private handleClose() {
+    if (!this.isClosed) { // retry only server-side close
+      this.timeout = setTimeout(this.connect.bind(this), 3_000);
+    }
   }
 
   send(action: GameAction) {
@@ -49,12 +58,12 @@ export class WebsocketManager {
   }
 }
 
-type GameAction =
-  | { type: 'ready' }
-  | { type: 'unready' }
+export type GameAction =
+  | { type: 'ready'; data: null }
+  | { type: 'unready'; data: null }
   | { type: 'choose-question'; data: { QuestionIndex: number } }
 
-type GameEvent = z.infer<typeof gameEventSchema>
+export type GameEvent = z.infer<typeof gameEventSchema>
 
 const gameEventSchema = z.union([
   z.object({
@@ -75,15 +84,20 @@ const gameEventSchema = z.union([
       playerID: z.string(),
     }),
   }),
+
+  z.object({
+    type: z.literal('player-readied'),
+    data: z.object({
+      playerID: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal('player-unreadied'),
+    data: z.object({
+      playerID: z.string(),
+    }),
+  }),
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
-
-export const useWebsocket = () => {
-  const context = useContext(WebsocketContext);
-  if (!context) {
-    throw new Error('useWebsocket must be used within WebsocketProvider');
-  }
-
-  return context;
-};
