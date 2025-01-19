@@ -13,5 +13,5 @@ export const getLobby = (id: string): Promise<{
   }[];
 }> => request(urlJoin('lobby', id));
 
-export const joinLobby = async (id: string) =>
+export const joinLobby = async (id: string): Promise<Record<never, never>> =>
   request(urlJoin('lobby', id, 'join'), { method: 'POST' });
