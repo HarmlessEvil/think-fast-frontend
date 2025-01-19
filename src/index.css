@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 #root {
-    @apply w-screen h-screen;
+    @apply h-screen;
 }

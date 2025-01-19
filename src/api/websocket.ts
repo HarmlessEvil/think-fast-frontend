@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export class WebsocketManager {
   private socket: WebSocket | null = null;
+  private timeout: number | null = null;
   private readonly handlers: { [E in GameEvent as E['type']]?: (data: E['data']) => void } = {};
 
   constructor(url: string) {
@@ -10,6 +11,7 @@ export class WebsocketManager {
   }
 
   private connect(url: string) {
+    this.timeout = null;
     this.socket = new WebSocket(url);
 
     this.socket.onmessage = (event) => {
@@ -22,11 +24,15 @@ export class WebsocketManager {
     };
 
     this.socket.onclose = () => {
-      setTimeout(() => this.connect(url), 3_000);
+      this.timeout = setTimeout(() => this.connect(url), 3_000);
     };
   }
 
   close() {
+    if (this.timeout !== null) {
+      clearTimeout(this.timeout);
+    }
+
     this.socket?.close();
   }
 
@@ -74,10 +80,10 @@ const gameEventSchema = z.union([
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
 
 export const useWebsocket = () => {
-  const context = useContext(WebsocketContext)
+  const context = useContext(WebsocketContext);
   if (!context) {
     throw new Error('useWebsocket must be used within WebsocketProvider');
   }
 
   return context;
-}
+};
