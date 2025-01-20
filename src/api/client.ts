@@ -1,3 +1,4 @@
+import { QueryClient } from '@tanstack/react-query';
 import urlJoin from 'proper-url-join';
 
 export const request = async <T>(
@@ -27,3 +28,5 @@ export const request = async <T>(
 
   return response.json();
 };
+
+export const queryClient = new QueryClient();

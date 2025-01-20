@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query';
 import urlJoin from 'proper-url-join';
 import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
+import { meQueryOptions } from '../../components/Auth/api.ts';
 import { PlayerList } from '../../components/Lobby/PlayerList.tsx';
 import { loader } from '../LobbyPageLayout/LobbyPageLayoutRoute.ts';
 import styles from './LobbyPage.module.css';
@@ -14,20 +16,20 @@ const addPlayer = (player: Lobby['players'][number]) => {
 
 const removePlayer = (playerID: string) =>
   (players: Lobby['players']) => {
-    return players.filter(player => player.id != playerID);
+    return players.filter(player => player.profile.id != playerID);
   };
 
 const setPlayerReady = (playerID: string) =>
   (players: Lobby['players']) => {
     return players.map((player) => {
-      return player.id === playerID ? { ...player, isReady: true } : player;
+      return player.profile.id === playerID ? { ...player, isReady: true } : player;
     });
   };
 
 const setPlayerUnready = (playerID: string) =>
   (players: Lobby['players']) => {
     return players.map((player) => {
-      return player.id === playerID ? { ...player, isReady: false } : player;
+      return player.profile.id === playerID ? { ...player, isReady: false } : player;
     });
   };
 
@@ -35,6 +37,7 @@ export const LobbyPage = () => {
   const { lobby: lobbyID } = useParams<'lobby'>();
   const lobby = useRouteLoaderData('lobby-layout') as Awaited<ReturnType<typeof loader>>;
 
+  const { data: me } = useQuery(meQueryOptions);
   const [players, setPlayers] = useState(lobby.players);
 
   const websocketManager = useContext(WebsocketContext);
@@ -76,7 +79,7 @@ export const LobbyPage = () => {
       </header>
 
       <main className={styles.main}>
-        <PlayerList players={players}/>
+        <PlayerList me={me!} players={players}/>
       </main>
 
       <form action={urlJoin(lobbyID, 'game', { leadingSlash: false })} className={styles.footer}>

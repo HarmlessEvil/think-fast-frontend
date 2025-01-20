@@ -7,9 +7,11 @@ export const createLobby = (): Promise<{
 
 export const getLobby = (id: string): Promise<{
   players: {
-    id: string;
-    isReady: boolean;
-    username: string;
+    isReady: boolean
+    profile: {
+      id: string
+      username: string
+    }
   }[];
 }> => request(urlJoin('lobby', id));
 

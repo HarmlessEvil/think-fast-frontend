@@ -70,10 +70,12 @@ const gameEventSchema = z.union([
     type: z.literal('player-joined'),
     data: z.object({
       player: z.object({
-        id: z.string(),
         isReady: z.boolean(),
+        profile: z.object({
+          id: z.string(),
+          username: z.string(),
+        }),
         score: z.number(),
-        username: z.string(),
       }),
     }),
   }),

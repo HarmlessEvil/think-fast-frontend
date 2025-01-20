@@ -1,25 +1,30 @@
 import styles from './PlayerList.module.css';
 
-type Player = {
-  id: string;
+type Profile = {
+  id: string
   username: string
+}
+
+type Player = {
   isReady: boolean
+  profile: Profile
 }
 
 type Props = {
+  me: Profile
   players: Player[]
 }
 
-export const PlayerList = ({ players }: Props) =>
+export const PlayerList = ({ me, players }: Props) =>
   players && (
     <ul className={styles.playerList}>
-      {players.map(player => <PlayerListItem key={player.id} player={player}/>)}
+      {players.map(player => <PlayerListItem key={player.profile.id} me={me} player={player}/>)}
     </ul>
   );
 
-const PlayerListItem = ({ player }: { player: Player }) => (
+const PlayerListItem = ({ me, player }: { me: Profile; player: Player }) => (
   <li>
-    <span>{player.username}</span>
+    <span>{player.profile.username} {player.profile.id === me.id && '(You)'}</span>
     <span>{!player.isReady && 'Not'} Ready</span>
   </li>
 );
