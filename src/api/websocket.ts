@@ -100,6 +100,11 @@ const gameEventSchema = z.union([
       playerID: z.string(),
     }),
   }),
+
+  z.object({
+    type: z.literal('game-started'),
+    data: z.object({}),
+  }),
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);

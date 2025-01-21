@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useContext, useEffect, useState } from 'react';
-import { useParams, useRouteLoaderData } from 'react-router-dom';
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import { meQueryOptions } from '../../components/Auth/api.ts';
 import { HostLobbyActions } from '../../components/Lobby/HostLobbyActions.tsx';
@@ -35,6 +35,8 @@ const setPlayerUnready = (playerID: string) =>
   };
 
 export const LobbyPage = () => {
+  const navigate = useNavigate();
+
   const { lobby: lobbyID } = useParams<'lobby'>();
   const lobby = useRouteLoaderData('lobby-layout') as Awaited<ReturnType<typeof loader>>;
 
@@ -45,9 +47,17 @@ export const LobbyPage = () => {
 
   const websocketManager = useContext(WebsocketContext);
 
+  const isHost = lobby.host == me.id;
+
   useEffect(() => {
     if (!websocketManager) {
       return;
+    }
+
+    if (!isHost) {
+      websocketManager.on('game-started', () => {
+        navigate('game');
+      });
     }
 
     websocketManager.on('player-joined', (event) => {
@@ -72,7 +82,7 @@ export const LobbyPage = () => {
       websocketManager.off('player-readied');
       websocketManager.off('player-unreadied');
     };
-  }, [websocketManager]);
+  }, [isHost, navigate, websocketManager]);
 
   return (
     <>
@@ -86,8 +96,8 @@ export const LobbyPage = () => {
       </main>
 
       {
-        lobby.host == me.id
-          ? <HostLobbyActions lobbyID={lobbyID!}/>
+        isHost
+          ? <HostLobbyActions/>
           : websocketManager && <PlayerLobbyActions websocketManager={websocketManager}/>
       }
     </>
