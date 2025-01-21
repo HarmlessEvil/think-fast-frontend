@@ -6,6 +6,7 @@ export const createLobby = (): Promise<{
 }> => request('lobby', { method: 'POST' });
 
 export const getLobby = (id: string): Promise<{
+  host: string
   players: {
     isReady: boolean
     profile: {

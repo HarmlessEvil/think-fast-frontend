@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import urlJoin from 'proper-url-join';
 import { useContext, useEffect, useState } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import { meQueryOptions } from '../../components/Auth/api.ts';
+import { HostLobbyActions } from '../../components/Lobby/HostLobbyActions.tsx';
 import { PlayerList } from '../../components/Lobby/PlayerList.tsx';
+import { PlayerLobbyActions } from '../../components/Lobby/PlayerLobbyActions.tsx';
 import { loader } from '../LobbyPageLayout/LobbyPageLayoutRoute.ts';
 import styles from './LobbyPage.module.css';
 
@@ -37,7 +38,9 @@ export const LobbyPage = () => {
   const { lobby: lobbyID } = useParams<'lobby'>();
   const lobby = useRouteLoaderData('lobby-layout') as Awaited<ReturnType<typeof loader>>;
 
-  const { data: me } = useQuery(meQueryOptions);
+  const { data: meQueryData } = useQuery(meQueryOptions);
+  const me = meQueryData!;
+
   const [players, setPlayers] = useState(lobby.players);
 
   const websocketManager = useContext(WebsocketContext);
@@ -79,16 +82,14 @@ export const LobbyPage = () => {
       </header>
 
       <main className={styles.main}>
-        <PlayerList me={me!} players={players}/>
+        <PlayerList me={me} players={players}/>
       </main>
 
-      <form action={urlJoin(lobbyID, 'game', { leadingSlash: false })} className={styles.footer}>
-        <button type="button" onClick={() => {
-          websocketManager?.send({ type: 'ready', data: null });
-        }}>Ready
-        </button>
-        <button type="submit">Start Game</button>
-      </form>
+      {
+        lobby.host == me.id
+          ? <HostLobbyActions lobbyID={lobbyID!}/>
+          : websocketManager && <PlayerLobbyActions websocketManager={websocketManager}/>
+      }
     </>
   );
 };

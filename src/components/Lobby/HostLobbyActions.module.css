@@ -1,0 +1,11 @@
+.form {
+    @apply flex flex-col items-center py-4;
+}
+
+.form button {
+    @apply w-full max-w-md py-2 px-4 border;
+
+    &:not(:last-child) {
+        @apply mb-2;
+    }
+}
