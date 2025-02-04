@@ -1,4 +1,4 @@
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { withZodSchema } from 'formik-validator-zod';
 import urlJoin from 'proper-url-join';
 import { useSubmit } from 'react-router-dom';
@@ -14,7 +14,7 @@ export const JoinLobbyCard = () => {
     }} onSubmit={async (values) => {
       submit(values, {
         action: urlJoin('/lobby', values.lobbyID),
-        method: 'put'
+        method: 'put',
       });
     }} validate={withZodSchema(schema)}>
       {() => (

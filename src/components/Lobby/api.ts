@@ -13,7 +13,7 @@ export const getLobby = (id: string): Promise<{
       id: string
       username: string
     }
-  }[];
+  }[]
 }> => request(urlJoin('/lobby', id));
 
 export const joinLobby = async (id: string): Promise<Record<never, never>> =>

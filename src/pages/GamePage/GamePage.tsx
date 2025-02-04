@@ -1,42 +1,53 @@
+import { useContext, useEffect } from 'react';
+import { useLoaderData } from 'react-router-dom';
+import { WebsocketContext } from '../../api/websocket.ts';
 import { CategoryHeader } from '../../components/Game/CategoryHeader.tsx';
 import { QuestionValue } from '../../components/Game/QuestionValue.tsx';
 import styles from './GamePage.module.css';
+import { loader } from './GamePageRoute.ts';
 
-export const GamePage = () => (
-  <>
-    <header className={styles.header}>
-      <h1>"Trivia Challenge" Pack</h1>
-      <p>Round 1</p>
-      <div className={styles.score}>
-        <span>Player1: 1200</span>
-        <span>Player2: 800</span>
-        <span>Player3: 600</span>
-      </div>
-    </header>
+export const GamePage = () => {
+  const game = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
-    <form className={styles.main}>
-      <CategoryHeader name="Category 1"/>
-      <CategoryHeader name="Category 2"/>
-      <CategoryHeader name="Category 3"/>
-      <CategoryHeader name="Category 4"/>
-      <CategoryHeader name="Category 5"/>
+  const websocketManager = useContext(WebsocketContext);
 
-      <QuestionValue score={100} />
-      <QuestionValue score={100} />
-      <QuestionValue score={100} />
-      <QuestionValue score={100} />
-      <QuestionValue score={100} />
+  useEffect(() => {
+    if (!websocketManager) {
+      return;
+    }
 
-      <QuestionValue score={200} />
-      <QuestionValue score={200} />
-      <QuestionValue score={200} />
-      <QuestionValue score={200} />
-      <QuestionValue score={200} />
-    </form>
+    return () => {
 
-    <form className={styles.footer}>
-      <button type="submit">Buzz In</button>
-      <button type="submit">Skip Question</button>
-    </form>
-  </>
-);
+    };
+  }, [websocketManager]);
+
+  return (
+    <>
+      <header className={styles.header}>
+        <h1>"{game.pack.name}" Pack</h1>
+        <p>Round {game.round + 1}</p>
+        <div className={styles.score}>
+          {game.players.map((player) => (
+            <span key={player.profile.id}>{player.profile.username}: {player.score}</span>
+          ))}
+        </div>
+      </header>
+
+      <form className={styles.main}>
+        {game.pack.rounds[game.round].themes.map((theme) => (
+          <CategoryHeader key={theme.name} name={theme.name}/>
+        ))}
+
+        {game.pack.rounds[game.round].themes.map((theme) =>
+          theme.questions.map((question) => (
+            <QuestionValue key={question.text} score={question.points}/>
+          )))}
+      </form>
+
+      <form className={styles.footer}>
+        <button type="submit">Buzz In</button>
+        <button type="submit">Skip Question</button>
+      </form>
+    </>
+  );
+};

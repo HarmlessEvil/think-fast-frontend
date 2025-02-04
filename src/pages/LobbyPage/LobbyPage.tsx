@@ -54,11 +54,9 @@ export const LobbyPage = () => {
       return;
     }
 
-    if (!isHost) {
-      websocketManager.on('game-started', () => {
-        navigate('game');
-      });
-    }
+    websocketManager.on('game-started', () => {
+      navigate('game');
+    });
 
     websocketManager.on('player-joined', (event) => {
       setPlayers(addPlayer(event.player));
@@ -82,7 +80,7 @@ export const LobbyPage = () => {
       websocketManager.off('player-readied');
       websocketManager.off('player-unreadied');
     };
-  }, [isHost, navigate, websocketManager]);
+  }, [navigate, websocketManager]);
 
   return (
     <>
