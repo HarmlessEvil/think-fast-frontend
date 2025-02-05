@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { z } from 'zod';
+import { packSchema, playerSchema } from './schemas.ts';
 
 export class WebsocketManager {
   private isClosed: boolean = false;
@@ -61,7 +62,12 @@ export class WebsocketManager {
 export type GameAction =
   | { type: 'ready'; data: null }
   | { type: 'unready'; data: null }
-  | { type: 'choose-question'; data: { QuestionIndex: number } }
+  | {
+  type: 'choose-question'; data: {
+    questionIndex: number
+    themeIndex: number
+  }
+}
 
 export type GameEvent = z.infer<typeof gameEventSchema>
 
@@ -69,14 +75,7 @@ const gameEventSchema = z.union([
   z.object({
     type: z.literal('player-joined'),
     data: z.object({
-      player: z.object({
-        isReady: z.boolean(),
-        profile: z.object({
-          id: z.string(),
-          username: z.string(),
-        }),
-        score: z.number(),
-      }),
+      player: playerSchema,
     }),
   }),
 
@@ -105,6 +104,22 @@ const gameEventSchema = z.union([
     type: z.literal('game-started'),
     data: z.object({}),
   }),
+
+  z.object({
+    type: z.literal('snapshot-taken'),
+    data: z.object({
+      currentPlayer: z.string(),
+      host: z.string(),
+      pack: packSchema,
+      playedQuestions: z.array(z.object({
+        question: z.number(),
+        theme: z.number(),
+      })).nullable(),
+      players: z.array(playerSchema),
+      roundIndex: z.number(),
+      state: z.unknown(),
+    })
+  })
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
