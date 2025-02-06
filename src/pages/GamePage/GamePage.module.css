@@ -14,10 +14,6 @@
     @apply flex justify-center gap-4 mt-2;
 }
 
-.main {
-    @apply grid grid-cols-5 gap-2 p-4;
-}
-
 .footer {
     @apply flex justify-center gap-4 py-4;
 }

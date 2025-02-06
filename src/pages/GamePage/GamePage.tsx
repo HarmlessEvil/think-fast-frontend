@@ -1,13 +1,12 @@
-import React, { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useLoaderData } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
-import { CategoryHeader } from '../../components/Game/CategoryHeader.tsx';
-import { QuestionValue } from '../../components/Game/QuestionValue.tsx';
 import styles from './GamePage.module.css';
 import { loader } from './GamePageRoute.ts';
+import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx';
 
 export const GamePage = () => {
-  const game = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const [game, setGame] = useState(useLoaderData() as Awaited<ReturnType<typeof loader>>);
 
   const websocketManager = useContext(WebsocketContext);
 
@@ -16,34 +15,49 @@ export const GamePage = () => {
       return;
     }
 
-    return () => {
+    websocketManager.on('question-chosen', (event) => {
+      setGame(game => ({
+        ...game,
+        state: {
+          name: 'question-display',
+          state: {
+            questionIndex: event.questionIndex,
+            themeIndex: event.themeIndex,
+          },
+        }
+      }));
+    });
 
+    return () => {
+      websocketManager.off('question-chosen');
     };
   }, [websocketManager]);
 
-  const onQuestion = useCallback((e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
-    e.preventDefault();
-
+  const onQuestion = useCallback((question: Question) => {
     if (!websocketManager) {
       return;
     }
 
-    const submitter = e.nativeEvent.submitter;
-    if (!submitter || (!(submitter instanceof HTMLButtonElement) && !(submitter instanceof HTMLInputElement))) {
-      return;
-    }
-
-    const questionID = submitter.value;
-
-    const [themeIndex, questionIndex] = questionID.split(':', 2).map(Number);
-    websocketManager.send({ type: 'choose-question', data: { questionIndex, themeIndex } });
+    websocketManager.send({ type: 'choose-question', data: question });
   }, [websocketManager]);
+
+  const renderGame = () => {
+    const state = game.state;
+    switch (state.name) {
+      case 'question-selection':
+        return <QuestionBoard onQuestionChosen={onQuestion} themes={game.pack.rounds[game.roundIndex].themes}/>;
+      case 'question-display':
+        return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex]);
+      default:
+        return <p>Unknown game state {state.name}</p>;
+    }
+  };
 
   return (
     <>
       <header className={styles.header}>
         <h1>"{game.pack.name}" Pack</h1>
-        <p>Round {game.round + 1}</p>
+        <p>Round {game.roundIndex + 1}</p>
         <div className={styles.score}>
           {game.players.map((player) => (
             <span key={player.profile.id}>{player.profile.username}: {player.score}</span>
@@ -51,21 +65,7 @@ export const GamePage = () => {
         </div>
       </header>
 
-      <form className={styles.main} onSubmit={onQuestion}>
-        {game.pack.rounds[game.round].themes.map((theme) => (
-          <CategoryHeader key={theme.name} name={theme.name}/>
-        ))}
-
-        {game.pack.rounds[game.round].themes.map((theme, themeIndex) =>
-          theme.questions.map((question, questionIndex) => (
-            <QuestionValue
-              key={question.text}
-              questionIndex={questionIndex}
-              score={question.points}
-              themeIndex={themeIndex}
-            />
-          )))}
-      </form>
+      {renderGame()}
 
       <footer className={styles.footer}>
         <button type="button">Buzz In</button>
