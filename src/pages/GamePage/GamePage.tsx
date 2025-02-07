@@ -7,6 +7,7 @@ import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx
 
 export const GamePage = () => {
   const [game, setGame] = useState(useLoaderData() as Awaited<ReturnType<typeof loader>>);
+  const buzzInAllowed = game.state.name === 'buzzing-in';
 
   const websocketManager = useContext(WebsocketContext);
 
@@ -20,12 +21,28 @@ export const GamePage = () => {
         ...game,
         state: {
           name: 'question-display',
-          state: {
-            questionIndex: event.questionIndex,
-            themeIndex: event.themeIndex,
-          },
+          state: event,
         }
       }));
+    });
+
+    websocketManager.on('buzz-in-allowed', () => {
+      setGame(game => {
+        if (game.state.name !== 'question-display') {
+          throw new Error('unexpected state');
+        }
+
+        return ({
+          ...game,
+          state: {
+            name: 'buzzing-in',
+            state: {
+              buzzedIn: {},
+              stateQuestionDisplay: game.state.state,
+            },
+          }
+        });
+      });
     });
 
     return () => {
@@ -41,6 +58,14 @@ export const GamePage = () => {
     websocketManager.send({ type: 'choose-question', data: question });
   }, [websocketManager]);
 
+  const onBuzzIn = useCallback(() => {
+    if (!websocketManager) {
+      return;
+    }
+
+    websocketManager.send({ type: 'buzz-in', data: null });
+  }, [websocketManager]);
+
   const renderGame = () => {
     const state = game.state;
     switch (state.name) {
@@ -48,6 +73,8 @@ export const GamePage = () => {
         return <QuestionBoard onQuestionChosen={onQuestion} themes={game.pack.rounds[game.roundIndex].themes}/>;
       case 'question-display':
         return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex]);
+      case 'buzzing-in':
+        return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex]);
       default:
         return <p>Unknown game state {state.name}</p>;
     }
@@ -68,7 +95,7 @@ export const GamePage = () => {
       {renderGame()}
 
       <footer className={styles.footer}>
-        <button type="button">Buzz In</button>
+        <button disabled={!buzzInAllowed} onClick={onBuzzIn} type="button">Buzz In</button>
         <button type="button">Skip Question</button>
       </footer>
     </>

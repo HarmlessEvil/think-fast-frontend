@@ -59,15 +59,26 @@ export class WebsocketManager {
   }
 }
 
-export type GameAction =
-  | { type: 'ready'; data: null }
-  | { type: 'unready'; data: null }
-  | {
-  type: 'choose-question'; data: {
-    questionIndex: number
-    themeIndex: number
+export type GameAction = |
+  {
+    type: 'ready'
+    data: null
+  } |
+  {
+    type: 'unready'
+    data: null
+  } |
+  {
+    type: 'choose-question'
+    data: {
+      questionIndex: number
+      themeIndex: number
+    }
+  } |
+  {
+    type: 'buzz-in'
+    data: null
   }
-}
 
 export type GameEvent = z.infer<typeof gameEventSchema>
 
@@ -131,6 +142,13 @@ const gameEventSchema = z.union([
       themeIndex: z.number(),
     }),
   }),
+
+  z.object({
+    type: z.literal('buzzed-in'),
+    data: z.object({
+      playerID: z.string(),
+    }),
+  })
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
