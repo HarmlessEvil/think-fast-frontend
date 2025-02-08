@@ -78,6 +78,14 @@ export type GameAction = |
   {
     type: 'buzz-in'
     data: null
+  } |
+  {
+    type: 'accept-answer'
+    data: null
+  } |
+  {
+    type: 'reject-answer'
+    data: null
   }
 
 export type GameEvent = z.infer<typeof gameEventSchema>
