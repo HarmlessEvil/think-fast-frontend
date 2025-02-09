@@ -156,7 +156,16 @@ const gameEventSchema = z.union([
     data: z.object({
       playerID: z.string(),
     }),
-  })
+  }),
+
+  z.object({
+    type: z.literal('answer-rejected'),
+    data: z.object({
+      playerID: z.string(),
+      questionIndex: z.number(),
+      themeIndex: z.number(),
+    }),
+  }),
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);

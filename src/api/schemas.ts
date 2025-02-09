@@ -42,7 +42,7 @@ export const gameSnapshotSchema = z.object({
     question: z.number(),
     theme: z.number(),
   })).nullable(),
-  players: z.array(playerSchema),
+  players: z.record(playerSchema),
   roundIndex: z.number(),
   state: z.union([
     z.object({

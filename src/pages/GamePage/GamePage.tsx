@@ -72,10 +72,31 @@ export const GamePage = () => {
       });
     });
 
+    websocketManager.on('answer-rejected', (event) => {
+      setGame(game => {
+        if (game.state.name !== 'answer-evaluation') {
+          throw new Error('unexpected state');
+        }
+
+        const player = game.players[game.state.state.player];
+        const question = game.pack.rounds[game.roundIndex].themes[event.themeIndex].questions[event.questionIndex];
+
+        return {
+          ...game,
+          players: { ...game.players, [game.state.state.player]: { ...player, score: player.score - question.points } },
+          state: {
+            name: 'buzzing-in',
+            state: game.state.state.stateBuzzingIn,
+          }
+        };
+      });
+    });
+
     return () => {
       websocketManager.off('question-chosen');
       websocketManager.off('buzz-in-allowed');
       websocketManager.off('buzzed-in');
+      websocketManager.off('answer-rejected');
     };
   }, [websocketManager]);
 
@@ -148,7 +169,7 @@ export const GamePage = () => {
         <h1>"{game.pack.name}" Pack</h1>
         <p>Round {game.roundIndex + 1}</p>
         <div className={styles.score}>
-          {game.players.map((player) => (
+          {Object.values(game.players).map((player) => (
             <span key={player.profile.id}>{player.profile.username}: {player.score}</span>
           ))}
         </div>
