@@ -38,9 +38,9 @@ export const gameSnapshotSchema = z.object({
   currentPlayer: z.string(),
   host: z.string(),
   pack: packSchema,
-  playedQuestions: z.array(z.object({
-    question: z.number(),
-    theme: z.number(),
+  playedQuestions: z.set(z.object({
+    questionIndex: z.number(),
+    themeIndex: z.number(),
   })).nullable(),
   players: z.record(playerSchema),
   roundIndex: z.number(),

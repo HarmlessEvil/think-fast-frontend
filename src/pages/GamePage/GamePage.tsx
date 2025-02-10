@@ -7,6 +7,9 @@ import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx
 import { useQuery } from '@tanstack/react-query';
 import { meQueryOptions } from '../../components/Auth/api.ts';
 
+const countQuestions = (themes: { questions: unknown[] }[]): number =>
+  themes.map(theme => theme.questions.length).reduce((a, b) => a + b, 0);
+
 export const GamePage = () => {
   const [game, setGame] = useState(useLoaderData() as Awaited<ReturnType<typeof loader>>);
 
@@ -78,16 +81,50 @@ export const GamePage = () => {
           throw new Error('unexpected state');
         }
 
-        const player = game.players[game.state.state.player];
+        const playerID = game.state.state.player;
+        const player = game.players[playerID];
         const question = game.pack.rounds[game.roundIndex].themes[event.themeIndex].questions[event.questionIndex];
 
         return {
           ...game,
-          players: { ...game.players, [game.state.state.player]: { ...player, score: player.score - question.points } },
+          players: { ...game.players, [playerID]: { ...player, score: player.score - question.points } },
           state: {
             name: 'buzzing-in',
             state: game.state.state.stateBuzzingIn,
           }
+        };
+      });
+    });
+
+    websocketManager.on('answer-accepted', event => {
+      setGame(game => {
+        if (game.state.name !== 'answer-evaluation') {
+          throw new Error('unexpected state');
+        }
+
+        const playerID = game.state.state.player;
+        const player = game.players[playerID];
+
+        const themes = game.pack.rounds[game.roundIndex].themes;
+        const question = themes[event.themeIndex].questions[event.questionIndex];
+
+        const playedQuestions = game.playedQuestions ?? new Set();
+        playedQuestions.add({ questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+
+        const questionsCount = countQuestions(themes);
+        const stateName = playedQuestions.size === questionsCount
+          ? 'round-end'
+          : 'question-selection';
+
+        return {
+          ...game,
+          currentPlayer: playerID,
+          playedQuestions: playedQuestions,
+          players: { ...game.players, [playerID]: { ...player, score: player.score + question.points } },
+          state: {
+            name: stateName,
+            state: {},
+          },
         };
       });
     });
@@ -97,6 +134,7 @@ export const GamePage = () => {
       websocketManager.off('buzz-in-allowed');
       websocketManager.off('buzzed-in');
       websocketManager.off('answer-rejected');
+      websocketManager.off('answer-accepted');
     };
   }, [websocketManager]);
 
@@ -136,7 +174,11 @@ export const GamePage = () => {
     const state = game.state;
     switch (state.name) {
       case 'question-selection':
-        return <QuestionBoard onQuestionChosen={onQuestion} themes={game.pack.rounds[game.roundIndex].themes}/>;
+        return <QuestionBoard
+          onQuestionChosen={onQuestion}
+          playedQuestions={game.playedQuestions ?? new Set()}
+          themes={game.pack.rounds[game.roundIndex].themes}
+        />;
       case 'question-display':
         return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex]);
       case 'buzzing-in':

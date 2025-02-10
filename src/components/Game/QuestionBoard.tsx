@@ -18,10 +18,17 @@ type Theme = {
 
 type Props = {
   onQuestionChosen: (question: Question) => void
+  playedQuestions: Set<Question>
   themes: Theme[]
 }
 
-export const QuestionBoard = ({ onQuestionChosen, themes }: Props) => {
+export const QuestionBoard = (
+  {
+    onQuestionChosen,
+    playedQuestions,
+    themes,
+  }: Props,
+) => {
   const onSubmit = (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
     e.preventDefault();
 
@@ -46,6 +53,7 @@ export const QuestionBoard = ({ onQuestionChosen, themes }: Props) => {
         theme.questions.map((question, questionIndex) => (
           <QuestionValue
             key={question.text}
+            disabled={playedQuestions.has({ questionIndex, themeIndex })}
             questionIndex={questionIndex}
             score={question.points}
             themeIndex={themeIndex}

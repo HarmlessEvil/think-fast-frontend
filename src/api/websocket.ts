@@ -166,6 +166,15 @@ const gameEventSchema = z.union([
       themeIndex: z.number(),
     }),
   }),
+
+  z.object({
+    type: z.literal('answer-accepted'),
+    data: z.object({
+      playerID: z.string(),
+      questionIndex: z.number(),
+      themeIndex: z.number(),
+    }),
+  }),
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
