@@ -38,10 +38,26 @@ export const gameSnapshotSchema = z.object({
   currentPlayer: z.string(),
   host: z.string(),
   pack: packSchema,
-  playedQuestions: z.set(z.object({
+  playedQuestions: z.array(z.object({
     questionIndex: z.number(),
     themeIndex: z.number(),
-  })).nullable(),
+  })).nullable().transform((questions, ctx) => {
+    if (!questions) {
+      return null;
+    }
+
+    const set = new Set(questions);
+    if (set.size !== questions.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Array items must be unique',
+      });
+
+      return z.NEVER;
+    }
+
+    return set;
+  }),
   players: z.record(playerSchema),
   roundIndex: z.number(),
   state: z.union([
@@ -65,12 +81,7 @@ export const gameSnapshotSchema = z.object({
       state: z.object({
         player: z.string(),
         stateBuzzingIn: stateBuzzingInSchema,
-      })
-    }),
-
-    z.object({
-      name: z.literal('round-end'),
-      state: z.object({}),
+      }),
     }),
 
     z.object({

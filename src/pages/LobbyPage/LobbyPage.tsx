@@ -11,28 +11,19 @@ import styles from './LobbyPage.module.css';
 
 type Lobby = Awaited<ReturnType<typeof loader>>
 
-const addPlayer = (player: Lobby['players'][number]) => {
-  return (players: Lobby['players']) => [...(players ?? []), player];
-};
+const addPlayer = (player: Lobby['players'][string]) =>
+  (players: Lobby['players']) => ({ ...players, [player.profile.id]: player });
 
 const removePlayer = (playerID: string) =>
-  (players: Lobby['players']) => {
-    return players.filter(player => player.profile.id != playerID);
-  };
+  ({ [playerID]: _, ...rest }: Lobby['players']) => rest;
 
 const setPlayerReady = (playerID: string) =>
-  (players: Lobby['players']) => {
-    return players.map((player) => {
-      return player.profile.id === playerID ? { ...player, isReady: true } : player;
-    });
-  };
+  (players: Lobby['players']) =>
+    ({ ...players, [playerID]: { ...players[playerID], isReady: true } });
 
 const setPlayerUnready = (playerID: string) =>
-  (players: Lobby['players']) => {
-    return players.map((player) => {
-      return player.profile.id === playerID ? { ...player, isReady: false } : player;
-    });
-  };
+  (players: Lobby['players']) =>
+    ({ ...players, [playerID]: { ...players[playerID], isReady: false } });
 
 export const LobbyPage = () => {
   const navigate = useNavigate();
@@ -44,6 +35,12 @@ export const LobbyPage = () => {
   const me = meQueryData!;
 
   const [players, setPlayers] = useState(lobby.players);
+
+  const myPlayer = players[me.id];
+  const playerList = Object.values(players).sort(
+    (a, b) =>
+      a.profile.username.localeCompare(b.profile.username),
+  );
 
   const websocketManager = useContext(WebsocketContext);
 
@@ -82,6 +79,18 @@ export const LobbyPage = () => {
     };
   }, [navigate, websocketManager]);
 
+  const onReadyChange = (isReady: boolean) => {
+    if (!websocketManager) {
+      return;
+    }
+
+    websocketManager.send(
+      isReady
+        ? { type: 'ready', data: null }
+        : { type: 'unready', data: null },
+    );
+  };
+
   return (
     <>
       <header className={styles.header}>
@@ -90,13 +99,13 @@ export const LobbyPage = () => {
       </header>
 
       <main className={styles.main}>
-        <PlayerList me={me} players={players}/>
+        <PlayerList me={me} players={playerList}/>
       </main>
 
       {
         isHost
           ? <HostLobbyActions/>
-          : websocketManager && <PlayerLobbyActions websocketManager={websocketManager}/>
+          : websocketManager && <PlayerLobbyActions isReady={myPlayer.isReady} onReadyChange={onReadyChange}/>
       }
     </>
   );

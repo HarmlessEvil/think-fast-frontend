@@ -7,17 +7,17 @@ export const createLobby = (): Promise<{
 
 export const getLobby = (id: string): Promise<{
   host: string
-  players: {
+  players: Record<string, {
     isReady: boolean
     profile: {
       id: string
       username: string
     }
-  }[]
+  }>
 }> => request(urlJoin('/lobby', id));
 
 export const joinLobby = async (id: string): Promise<Record<never, never>> =>
   request(urlJoin('/lobby', id, 'join'), { method: 'PUT' });
 
 export const startGame = async (lobbyID: string): Promise<Record<never, never>> =>
-  request(urlJoin('/lobby', lobbyID, 'start-game'), { method: 'POST' });
+  request(urlJoin('/lobby', lobbyID, 'game', 'start'), { method: 'POST' });

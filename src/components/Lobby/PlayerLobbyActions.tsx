@@ -1,25 +1,31 @@
 import { useState } from 'react';
-import { WebsocketManager } from '../../api/websocket.ts';
 import styles from './PlayerLobbyActions.module.css';
 
 type Props = {
-  websocketManager: WebsocketManager;
+  isReady: boolean
+  onReadyChange: (isReady: boolean) => void
 }
 
-export const PlayerLobbyActions = ({ websocketManager }: Props) => {
-  const [isReady, setIsReady] = useState(false);
+export const PlayerLobbyActions = (
+  {
+    isReady,
+    onReadyChange,
+  }: Props,
+) => {
+  const [meIsReady, setMeIsReady] = useState(isReady);
+
+  const handleReadyChange = () => {
+    setMeIsReady(current => {
+      const next = !current;
+      onReadyChange(next);
+
+      return next;
+    });
+  };
 
   return (
-    <button className={styles.button} type="button" onClick={() => {
-      websocketManager.send(
-        isReady
-          ? { type: 'unready', data: null }
-          : { type: 'ready', data: null },
-      );
-
-      setIsReady(!isReady);
-    }}>
-      {isReady ? 'Unready' : 'Ready'}
+    <button className={styles.button} type="button" onClick={handleReadyChange}>
+      {meIsReady ? 'Unready' : 'Ready'}
     </button>
   );
 };

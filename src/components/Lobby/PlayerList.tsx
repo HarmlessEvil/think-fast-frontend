@@ -16,7 +16,7 @@ type Props = {
 }
 
 export const PlayerList = ({ me, players }: Props) =>
-  players && (
+  players.length != 0 && (
     <ul className={styles.playerList}>
       {players.map(player => <PlayerListItem key={player.profile.id} me={me} player={player}/>)}
     </ul>

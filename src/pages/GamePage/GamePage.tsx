@@ -1,17 +1,23 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { useLoaderData } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import styles from './GamePage.module.css';
 import { loader } from './GamePageRoute.ts';
 import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx';
 import { useQuery } from '@tanstack/react-query';
 import { meQueryOptions } from '../../components/Auth/api.ts';
+import { exitToLobby } from '../../components/Game/api.ts';
 
 const countQuestions = (themes: { questions: unknown[] }[]): number =>
   themes.map(theme => theme.questions.length).reduce((a, b) => a + b, 0);
 
 export const GamePage = () => {
   const [game, setGame] = useState(useLoaderData() as Awaited<ReturnType<typeof loader>>);
+
+  const navigate = useNavigate();
+
+  const { lobby } = useParams<'lobby'>();
+  const lobbyID = lobby!;
 
   const { data: meQueryData } = useQuery(meQueryOptions);
   const me = meQueryData!;
@@ -30,7 +36,7 @@ export const GamePage = () => {
         state: {
           name: 'question-display',
           state: event,
-        }
+        },
       }));
     });
 
@@ -48,7 +54,7 @@ export const GamePage = () => {
               buzzedIn: {},
               stateQuestionDisplay: game.state.state,
             },
-          }
+          },
         };
       });
     });
@@ -69,8 +75,8 @@ export const GamePage = () => {
                 buzzedIn: { ...game.state.state.buzzedIn, [event.playerID]: new Date() },
                 stateQuestionDisplay: game.state.state.stateQuestionDisplay,
               },
-            }
-          }
+            },
+          },
         };
       });
     });
@@ -91,7 +97,7 @@ export const GamePage = () => {
           state: {
             name: 'buzzing-in',
             state: game.state.state.stateBuzzingIn,
-          }
+          },
         };
       });
     });
@@ -108,12 +114,23 @@ export const GamePage = () => {
         const themes = game.pack.rounds[game.roundIndex].themes;
         const question = themes[event.themeIndex].questions[event.questionIndex];
 
-        const playedQuestions = game.playedQuestions ?? new Set();
-        playedQuestions.add({ questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+        const playedQuestions: typeof game['playedQuestions'] = game.playedQuestions
+          ? new Set(game.playedQuestions)
+          : new Set();
 
-        const questionsCount = countQuestions(themes);
-        const stateName = playedQuestions.size === questionsCount
-          ? 'round-end'
+        const isNextRound = playedQuestions.size + 1 === countQuestions(themes);
+
+        if (isNextRound) {
+          playedQuestions.clear();
+        } else {
+          playedQuestions.add({ questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+        }
+
+        const roundIndex = isNextRound ? game.roundIndex + 1 : game.roundIndex;
+        const isGameOver = isNextRound && roundIndex === game.pack.rounds.length;
+
+        const stateName = isGameOver
+          ? 'game-over'
           : 'question-selection';
 
         return {
@@ -121,6 +138,7 @@ export const GamePage = () => {
           currentPlayer: playerID,
           playedQuestions: playedQuestions,
           players: { ...game.players, [playerID]: { ...player, score: player.score + question.points } },
+          roundIndex: roundIndex,
           state: {
             name: stateName,
             state: {},
@@ -170,6 +188,11 @@ export const GamePage = () => {
     websocketManager.send({ type: 'reject-answer', data: null });
   }, [websocketManager]);
 
+  const onExitToLobby = async () => {
+    await exitToLobby(lobbyID);
+    navigate('..', { relative: 'path' });
+  };
+
   const renderGame = () => {
     const state = game.state;
     switch (state.name) {
@@ -185,8 +208,15 @@ export const GamePage = () => {
         return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex]);
       case 'answer-evaluation':
         return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex]);
+      case 'game-over':
+        return <p>Thanks for playing! Now you can return to lobby if you want to play more.</p>;
       default:
-        return <p>Unknown game state {state.name}</p>;
+        // `state satisfies never` is a  compile time check for exhaustive switch.
+        // It should be never if all cases are handled. Source: https://stackoverflow.com/a/75217377/7149107
+        //
+        // `as typeof game['state']` erases cast information to make this code compile if the switch is exhaustive.
+        // Thus, if the error is ignored, a message would be displayed in runtime.
+        return <p>Unknown game state {((state satisfies never) as typeof game['state']).name}</p>;
     }
   };
 
@@ -194,7 +224,11 @@ export const GamePage = () => {
     const state = game.state;
     switch (state.name) {
       case 'buzzing-in':
-        return <button onClick={onBuzzIn} type="button">Buzz In</button>;
+        if (!isHost) {
+          return <button onClick={onBuzzIn} type="button">Buzz In</button>;
+        }
+
+        break;
       case 'answer-evaluation':
         if (isHost) {
           return [
@@ -202,6 +236,14 @@ export const GamePage = () => {
             <button key="reject" type="button" onClick={onRejectAnswer}>Reject answer</button>,
           ];
         }
+
+        break;
+      case 'game-over':
+        if (isHost) {
+          return <button type="button" onClick={onExitToLobby}>Exit to Lobby</button>;
+        }
+
+        return <Link to=".." relative="path">Return to Lobby</Link>;
     }
   };
 
