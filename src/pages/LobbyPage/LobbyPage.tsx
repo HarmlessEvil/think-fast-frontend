@@ -1,27 +1,45 @@
 import { useQuery } from '@tanstack/react-query';
 import { useContext, useEffect, useState } from 'react';
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router-dom';
+import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import { meQueryOptions } from '../../components/Auth/api.ts';
 import { HostLobbyActions } from '../../components/Lobby/HostLobbyActions.tsx';
 import { PlayerList } from '../../components/Lobby/PlayerList.tsx';
 import { PlayerLobbyActions } from '../../components/Lobby/PlayerLobbyActions.tsx';
-import { loader } from '../LobbyPageLayout/LobbyPageLayoutRoute.ts';
+import { loader } from './LobbyPageRoute.ts';
 import styles from './LobbyPage.module.css';
+import { PlayerID, PlayerProfile } from '../../api/types.ts';
 
 type Lobby = Awaited<ReturnType<typeof loader>>
 
-const addPlayer = (player: Lobby['players'][string]) =>
-  (players: Lobby['players']) => ({ ...players, [player.profile.id]: player });
+const addPlayer = (profile: PlayerProfile) =>
+  (players: Lobby['players']) => ({
+    ...players,
+    [profile.id]: {
+      isPlaying: false,
+      isReady: false,
+      profile: profile,
+    },
+  });
 
-const removePlayer = (playerID: string) =>
+const setPlayersNotPlaying = (returnedPlayers: PlayerID[]) =>
+  (players: Lobby['players']) => {
+    const nextPlayers = { ...players };
+    for (const player of returnedPlayers) {
+      nextPlayers[player].isPlaying = false;
+    }
+
+    return nextPlayers;
+  };
+
+const removePlayer = (playerID: PlayerID) =>
   ({ [playerID]: _, ...rest }: Lobby['players']) => rest;
 
-const setPlayerReady = (playerID: string) =>
+const setPlayerReady = (playerID: PlayerID) =>
   (players: Lobby['players']) =>
     ({ ...players, [playerID]: { ...players[playerID], isReady: true } });
 
-const setPlayerUnready = (playerID: string) =>
+const setPlayerUnready = (playerID: PlayerID) =>
   (players: Lobby['players']) =>
     ({ ...players, [playerID]: { ...players[playerID], isReady: false } });
 
@@ -29,7 +47,7 @@ export const LobbyPage = () => {
   const navigate = useNavigate();
 
   const { lobby: lobbyID } = useParams<'lobby'>();
-  const lobby = useRouteLoaderData('lobby-layout') as Awaited<ReturnType<typeof loader>>;
+  const lobby = useLoaderData() as Awaited<ReturnType<typeof loader>>;
 
   const { data: meQueryData } = useQuery(meQueryOptions);
   const me = meQueryData!;
@@ -71,11 +89,16 @@ export const LobbyPage = () => {
       setPlayers(setPlayerUnready(event.playerID));
     });
 
+    websocketManager.on('players-returned-to-lobby', (event) => {
+      setPlayers(setPlayersNotPlaying(event.players));
+    });
+
     return () => {
       websocketManager.off('player-joined');
       websocketManager.off('player-left');
       websocketManager.off('player-readied');
       websocketManager.off('player-unreadied');
+      websocketManager.off('players-returned-to-lobby');
     };
   }, [navigate, websocketManager]);
 
@@ -99,13 +122,15 @@ export const LobbyPage = () => {
       </header>
 
       <main className={styles.main}>
-        <PlayerList me={me} players={playerList}/>
+        <PlayerList me={me.id} players={playerList}/>
       </main>
 
       {
         isHost
           ? <HostLobbyActions/>
-          : websocketManager && <PlayerLobbyActions isReady={myPlayer.isReady} onReadyChange={onReadyChange}/>
+          : websocketManager && (
+          <PlayerLobbyActions isPlaying={myPlayer.isPlaying} isReady={myPlayer.isReady} onReadyChange={onReadyChange}/>
+        )
       }
     </>
   );

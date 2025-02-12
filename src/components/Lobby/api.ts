@@ -8,6 +8,7 @@ export const createLobby = (): Promise<{
 export const getLobby = (id: string): Promise<{
   host: string
   players: Record<string, {
+    isPlaying: boolean
     isReady: boolean
     profile: {
       id: string

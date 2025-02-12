@@ -1,7 +1,7 @@
-import { ActionFunction, Params } from 'react-router-dom';
+import { ActionFunction } from 'react-router-dom';
 import { queryClient } from '../../api/client.ts';
 import { meQueryOptions } from '../../components/Auth/api.ts';
-import { getLobby, joinLobby } from '../../components/Lobby/api.ts';
+import { joinLobby } from '../../components/Lobby/api.ts';
 import { schema as joinLobbySchema } from '../../components/Lobby/JoinLobbySchema.ts';
 
 export const action: ActionFunction = async ({ request }) => {
@@ -12,7 +12,7 @@ export const action: ActionFunction = async ({ request }) => {
   return null;
 };
 
-export const loader = async ({ params }: { params: Params<'lobby'> }) => {
+export const loader = async () => {
   await queryClient.prefetchQuery(meQueryOptions);
-  return getLobby(params.lobby!);
+  return null;
 };

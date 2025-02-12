@@ -1,4 +1,5 @@
 import styles from './PlayerList.module.css';
+import { PlayerID } from '../../api/types.ts';
 
 type Profile = {
   id: string
@@ -6,12 +7,13 @@ type Profile = {
 }
 
 type Player = {
+  isPlaying: boolean
   isReady: boolean
   profile: Profile
 }
 
 type Props = {
-  me: Profile
+  me: PlayerID
   players: Player[]
 }
 
@@ -22,9 +24,14 @@ export const PlayerList = ({ me, players }: Props) =>
     </ul>
   );
 
-const PlayerListItem = ({ me, player }: { me: Profile; player: Player }) => (
+const PlayerListItem = (
+  { me, player }: {
+    me: PlayerID
+    player: Player
+  },
+) => (
   <li>
-    <span>{player.profile.username} {player.profile.id === me.id && '(You)'}</span>
-    <span>{!player.isReady && 'Not'} Ready</span>
+    <span>{player.profile.username} {player.profile.id === me && '(You)'}</span>
+    <span>{!player.isReady && 'Not'} Ready {player.isPlaying && '(Playing)'}</span>
   </li>
 );

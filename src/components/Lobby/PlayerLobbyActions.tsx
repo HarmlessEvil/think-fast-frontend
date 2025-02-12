@@ -2,12 +2,14 @@ import { useState } from 'react';
 import styles from './PlayerLobbyActions.module.css';
 
 type Props = {
+  isPlaying: boolean
   isReady: boolean
   onReadyChange: (isReady: boolean) => void
 }
 
 export const PlayerLobbyActions = (
   {
+    isPlaying,
     isReady,
     onReadyChange,
   }: Props,
@@ -24,8 +26,10 @@ export const PlayerLobbyActions = (
   };
 
   return (
-    <button className={styles.button} type="button" onClick={handleReadyChange}>
-      {meIsReady ? 'Unready' : 'Ready'}
-    </button>
+    !isPlaying && (
+      <button className={styles.button} type="button" onClick={handleReadyChange}>
+        {meIsReady ? 'Unready' : 'Ready'}
+      </button>
+    )
   );
 };

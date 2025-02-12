@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { z } from 'zod';
-import { gameSnapshotSchema, playerSchema } from './schemas.ts';
+import { gameSnapshotSchema, playerProfileSchema } from './schemas.ts';
 
 export class WebsocketManager {
   private isClosed: boolean = false;
@@ -94,7 +94,7 @@ const gameEventSchema = z.union([
   z.object({
     type: z.literal('player-joined'),
     data: z.object({
-      player: playerSchema,
+      player: playerProfileSchema,
     }),
   }),
 
@@ -116,6 +116,13 @@ const gameEventSchema = z.union([
     type: z.literal('player-unreadied'),
     data: z.object({
       playerID: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal('players-returned-to-lobby'),
+    data: z.object({
+      players: z.array(z.string()),
     }),
   }),
 

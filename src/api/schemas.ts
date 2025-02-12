@@ -14,12 +14,13 @@ export const packSchema = z.object({
   })),
 });
 
+export const playerProfileSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+});
+
 export const playerSchema = z.object({
-  isReady: z.boolean(),
-  profile: z.object({
-    id: z.string(),
-    username: z.string(),
-  }),
+  profile: playerProfileSchema,
   score: z.number(),
 });
 

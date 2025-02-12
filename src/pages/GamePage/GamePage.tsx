@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { Link, useLoaderData, useNavigate, useParams } from 'react-router-dom';
+import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import styles from './GamePage.module.css';
 import { loader } from './GamePageRoute.ts';
@@ -147,14 +147,21 @@ export const GamePage = () => {
       });
     });
 
+    websocketManager.on('players-returned-to-lobby', (event) => {
+      if (event.players.includes(me.id)) {
+        navigate('..', { relative: 'path' });
+      }
+    });
+
     return () => {
       websocketManager.off('question-chosen');
       websocketManager.off('buzz-in-allowed');
       websocketManager.off('buzzed-in');
       websocketManager.off('answer-rejected');
       websocketManager.off('answer-accepted');
+      websocketManager.off('players-returned-to-lobby');
     };
-  }, [websocketManager]);
+  }, [me.id, navigate, websocketManager]);
 
   const onQuestion = useCallback((question: Question) => {
     if (!websocketManager) {
@@ -239,11 +246,7 @@ export const GamePage = () => {
 
         break;
       case 'game-over':
-        if (isHost) {
-          return <button type="button" onClick={onExitToLobby}>Exit to Lobby</button>;
-        }
-
-        return <Link to=".." relative="path">Return to Lobby</Link>;
+        return <button type="button" onClick={onExitToLobby}>Exit to Lobby</button>;
     }
   };
 
