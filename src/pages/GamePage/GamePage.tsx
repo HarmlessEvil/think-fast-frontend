@@ -118,7 +118,7 @@ export const GamePage = () => {
           ? new Set(game.playedQuestions)
           : new Set();
 
-        const isNextRound = playedQuestions.size + 1 === countQuestions(themes);
+        const isNextRound = playedQuestions.size + 1 >= countQuestions(themes);
 
         if (isNextRound) {
           playedQuestions.clear();
@@ -127,7 +127,7 @@ export const GamePage = () => {
         }
 
         const roundIndex = isNextRound ? game.roundIndex + 1 : game.roundIndex;
-        const isGameOver = isNextRound && roundIndex === game.pack.rounds.length;
+        const isGameOver = isNextRound && roundIndex >= game.pack.rounds.length;
 
         const stateName = isGameOver
           ? 'game-over'

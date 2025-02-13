@@ -182,6 +182,13 @@ const gameEventSchema = z.union([
       themeIndex: z.number(),
     }),
   }),
+
+  z.object({
+    type: z.literal('round-ended'),
+    data: z.object({
+      roundIndex: z.number(),
+    }),
+  }),
 ]);
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);
