@@ -210,11 +210,11 @@ export const GamePage = () => {
           themes={game.pack.rounds[game.roundIndex].themes}
         />;
       case 'question-display':
-        return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex]);
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex].points} {state.state.questionText}</p>;
       case 'buzzing-in':
-        return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex]);
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {state.state.stateQuestionDisplay.questionText}</p>;
       case 'answer-evaluation':
-        return JSON.stringify(game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex]);
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {state.state.stateBuzzingIn.stateQuestionDisplay.questionText}</p>;
       case 'game-over':
         return <p>Thanks for playing! Now you can return to lobby if you want to play more.</p>;
       default:
@@ -254,7 +254,7 @@ export const GamePage = () => {
     <>
       <header className={styles.header}>
         <h1>"{game.pack.name}" Pack</h1>
-        <p>Round {game.roundIndex + 1}</p>
+        {game.state.name !== 'game-over' && <p>Round {game.roundIndex + 1}</p>}
         <div className={styles.score}>
           {Object.values(game.players).map((player) => (
             <span key={player.profile.id}>{player.profile.username}: {player.score}</span>

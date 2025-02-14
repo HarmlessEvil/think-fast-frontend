@@ -52,7 +52,7 @@ export const QuestionBoard = (
       {themes.map((theme, themeIndex) =>
         theme.questions.map((question, questionIndex) => (
           <QuestionValue
-            key={question.text}
+            key={`${themeIndex}:${questionIndex}`}
             disabled={playedQuestions.has({ questionIndex, themeIndex })}
             questionIndex={questionIndex}
             score={question.points}
