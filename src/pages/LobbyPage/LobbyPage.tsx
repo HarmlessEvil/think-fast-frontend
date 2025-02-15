@@ -93,12 +93,20 @@ export const LobbyPage = () => {
       setPlayers(setPlayersNotPlaying(event.players));
     });
 
+    websocketManager.onClose((closedByClient, event) => {
+      if (!closedByClient && event.wasClean) {
+        navigate('/');
+      }
+    });
+
     return () => {
       websocketManager.off('player-joined');
       websocketManager.off('player-left');
       websocketManager.off('player-readied');
       websocketManager.off('player-unreadied');
       websocketManager.off('players-returned-to-lobby');
+
+      websocketManager.offClose();
     };
   }, [navigate, websocketManager]);
 

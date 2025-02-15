@@ -8,6 +8,7 @@ export class WebsocketManager {
   private timeout: number | null = null;
 
   private readonly handlers: { [E in GameEvent as E['type']]?: (data: E['data']) => void } = {};
+  private closeHandler: ((closedByClient: boolean, event: CloseEvent) => void) | null = null;
 
   constructor(private readonly url: string) {
     this.connect();
@@ -23,27 +24,20 @@ export class WebsocketManager {
     this.socket?.close();
   }
 
+  onClose(handler: (closedByClient: boolean, event: CloseEvent) => void) {
+    this.closeHandler = handler;
+  }
+
+  offClose() {
+    this.closeHandler = null;
+  }
+
   private connect() {
     this.timeout = null;
     this.socket = new WebSocket(this.url);
 
     this.socket.onmessage = (event) => this.handleMessage(event);
-    this.socket.onclose = () => this.handleClose();
-  }
-
-  private handleMessage(event: MessageEvent) {
-    const message = gameEventSchema.parse(JSON.parse(event.data));
-    const handler = this.handlers[message.type];
-
-    if (handler) {
-      handler(message.data as never);
-    }
-  }
-
-  private handleClose() {
-    if (!this.isClosed) { // retry only server-side close
-      this.timeout = setTimeout(this.connect.bind(this), 3_000);
-    }
+    this.socket.onclose = (event) => this.handleClose(event);
   }
 
   send(action: GameAction) {
@@ -56,6 +50,21 @@ export class WebsocketManager {
 
   off(eventType: GameEvent['type']) {
     delete this.handlers[eventType];
+  }
+
+  private handleMessage(event: MessageEvent) {
+    const message = gameEventSchema.parse(JSON.parse(event.data));
+    const handler = this.handlers[message.type];
+
+    handler?.(message.data as never);
+  }
+
+  private handleClose(event: CloseEvent) {
+    this.closeHandler?.(this.isClosed, event);
+
+    if (!this.isClosed && !event.wasClean) { // retry only server-side unexpected close
+      this.timeout = setTimeout(this.connect.bind(this), 3_000);
+    }
   }
 }
 

@@ -22,6 +22,8 @@ type Props = {
   themes: Theme[]
 }
 
+// TODO: Show which player selects a question
+
 export const QuestionBoard = (
   {
     onQuestionChosen,

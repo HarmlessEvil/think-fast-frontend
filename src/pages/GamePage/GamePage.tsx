@@ -59,6 +59,8 @@ export const GamePage = () => {
       });
     });
 
+    // TODO: Handle answer time-out
+
     websocketManager.on('buzzed-in', (event) => {
       setGame(game => {
         if (game.state.name !== 'buzzing-in') {
@@ -153,6 +155,12 @@ export const GamePage = () => {
       }
     });
 
+    websocketManager.onClose((closedByClient, { wasClean }) => {
+      if (!closedByClient && wasClean) {
+        navigate('/');
+      }
+    });
+
     return () => {
       websocketManager.off('question-chosen');
       websocketManager.off('buzz-in-allowed');
@@ -160,6 +168,8 @@ export const GamePage = () => {
       websocketManager.off('answer-rejected');
       websocketManager.off('answer-accepted');
       websocketManager.off('players-returned-to-lobby');
+
+      websocketManager.offClose();
     };
   }, [me.id, navigate, websocketManager]);
 
