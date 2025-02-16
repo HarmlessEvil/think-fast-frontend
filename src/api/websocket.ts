@@ -36,6 +36,7 @@ export class WebsocketManager {
     this.timeout = null;
     this.socket = new WebSocket(this.url);
 
+    // TODO: Handle HTTP 401 by redirecting to login, and 404 by exposing it to the consumer
     this.socket.onmessage = (event) => this.handleMessage(event);
     this.socket.onclose = (event) => this.handleClose(event);
   }

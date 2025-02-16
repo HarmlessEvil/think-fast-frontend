@@ -18,7 +18,7 @@ type Theme = {
 
 type Props = {
   onQuestionChosen: (question: Question) => void
-  playedQuestions: Set<Question>
+  playedQuestions: Set<string>
   themes: Theme[]
 }
 
@@ -52,15 +52,18 @@ export const QuestionBoard = (
       ))}
 
       {themes.map((theme, themeIndex) =>
-        theme.questions.map((question, questionIndex) => (
-          <QuestionValue
-            key={`${themeIndex}:${questionIndex}`}
-            disabled={playedQuestions.has({ questionIndex, themeIndex })}
-            questionIndex={questionIndex}
-            score={question.points}
-            themeIndex={themeIndex}
-          />
-        )))}
+        theme.questions.map((question, questionIndex) => {
+          const questionID = `${themeIndex}:${questionIndex}`;
+
+          return (
+            <QuestionValue
+              key={questionID}
+              isPlayed={playedQuestions.has(questionID)}
+              questionID={questionID}
+              score={question.points}
+            />
+          );
+        }))}
     </form>
   );
 };

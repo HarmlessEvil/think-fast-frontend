@@ -1,27 +1,25 @@
 import styles from './QuestionValue.module.css';
 
 type Props = {
-  disabled: boolean
-  questionIndex: number
+  isPlayed: boolean
+  questionID: string
   score: number
-  themeIndex: number
 }
 
 export const QuestionValue = (
   {
-    disabled,
-    questionIndex,
+    isPlayed,
+    questionID,
     score,
-    themeIndex,
   }: Props,
 ) => (
   <button
     className={styles.questionValue}
-    disabled={disabled}
+    disabled={isPlayed}
     type="submit"
     name="question"
-    value={`${themeIndex}:${questionIndex}`}
+    value={questionID}
   >
-    {score}
+    {isPlayed && '(X)'}{score}
   </button>
 );

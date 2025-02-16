@@ -2,17 +2,63 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import styles from './GamePage.module.css';
-import { loader } from './GamePageRoute.ts';
 import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx';
 import { useQuery } from '@tanstack/react-query';
 import { meQueryOptions } from '../../components/Auth/api.ts';
 import { exitToLobby } from '../../components/Game/api.ts';
+import { GameSnapshot } from '../../api/types.ts';
 
-const countQuestions = (themes: { questions: unknown[] }[]): number =>
+type QuestionIndex = {
+  questionIndex: number
+  themeIndex: number
+};
+
+type Theme = {
+  questions: unknown[]
+};
+
+const countQuestions = (themes: Theme[]): number =>
   themes.map(theme => theme.questions.length).reduce((a, b) => a + b, 0);
 
+/**
+ * Modifies the game to mark a given question as played.
+ * It advances the game to the next round if the current round has no more question,
+ * or ends the game if the game has no more rounds.
+ * @param game snapshot of the game state.
+ * @param questionIndex index of the played question.
+ */
+const markQuestionAsPlayed = (
+  game: GameSnapshot,
+  questionIndex: QuestionIndex,
+) => {
+  const playedQuestions: typeof game['playedQuestions'] = game.playedQuestions
+    ? new Set(game.playedQuestions)
+    : new Set();
+
+  const themes = game.pack.rounds[game.roundIndex].themes;
+  const isNextRound = playedQuestions.size + 1 >= countQuestions(themes);
+
+  if (isNextRound) {
+    playedQuestions.clear();
+  } else {
+    playedQuestions.add(`${questionIndex.themeIndex}:${questionIndex.questionIndex}`);
+  }
+
+  const roundIndex = isNextRound ? game.roundIndex + 1 : game.roundIndex;
+  const isGameOver = isNextRound && roundIndex >= game.pack.rounds.length;
+
+  game.playedQuestions = playedQuestions;
+  game.roundIndex = roundIndex;
+
+  if (isGameOver) {
+    game.state = { name: 'game-over', state: {} };
+  } else {
+    game.state = { name: 'question-selection', state: {} };
+  }
+};
+
 export const GamePage = () => {
-  const [game, setGame] = useState(useLoaderData() as Awaited<ReturnType<typeof loader>>);
+  const [game, setGame] = useState(useLoaderData() as GameSnapshot);
 
   const navigate = useNavigate();
 
@@ -59,7 +105,18 @@ export const GamePage = () => {
       });
     });
 
-    // TODO: Handle answer time-out
+    websocketManager.on('question-timed-out', event => {
+      setGame(game => {
+        if (game.state.name !== 'buzzing-in') {
+          throw new Error('unexpected state');
+        }
+
+        const nextGameState = { ...game };
+        markQuestionAsPlayed(nextGameState, { questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+
+        return nextGameState;
+      });
+    });
 
     websocketManager.on('buzzed-in', (event) => {
       setGame(game => {
@@ -91,16 +148,26 @@ export const GamePage = () => {
 
         const playerID = game.state.state.player;
         const player = game.players[playerID];
-        const question = game.pack.rounds[game.roundIndex].themes[event.themeIndex].questions[event.questionIndex];
+        const question = (game.pack.rounds[game.roundIndex].themes)[event.themeIndex].questions[event.questionIndex];
 
-        return {
+        const nextGameState = {
           ...game,
           players: { ...game.players, [playerID]: { ...player, score: player.score - question.points } },
-          state: {
-            name: 'buzzing-in',
-            state: game.state.state.stateBuzzingIn,
-          },
         };
+
+        const stateBuzzingIn = game.state.state.stateBuzzingIn;
+        const isQuestionSkipped = Object.keys(stateBuzzingIn.buzzedIn).length >= Object.keys(game.players).length;
+
+        if (isQuestionSkipped) {
+          markQuestionAsPlayed(nextGameState, { questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+        } else {
+          nextGameState.state = {
+            name: 'buzzing-in',
+            state: stateBuzzingIn,
+          };
+        }
+
+        return nextGameState;
       });
     });
 
@@ -116,36 +183,14 @@ export const GamePage = () => {
         const themes = game.pack.rounds[game.roundIndex].themes;
         const question = themes[event.themeIndex].questions[event.questionIndex];
 
-        const playedQuestions: typeof game['playedQuestions'] = game.playedQuestions
-          ? new Set(game.playedQuestions)
-          : new Set();
-
-        const isNextRound = playedQuestions.size + 1 >= countQuestions(themes);
-
-        if (isNextRound) {
-          playedQuestions.clear();
-        } else {
-          playedQuestions.add({ questionIndex: event.questionIndex, themeIndex: event.themeIndex });
-        }
-
-        const roundIndex = isNextRound ? game.roundIndex + 1 : game.roundIndex;
-        const isGameOver = isNextRound && roundIndex >= game.pack.rounds.length;
-
-        const stateName = isGameOver
-          ? 'game-over'
-          : 'question-selection';
-
-        return {
+        const nextGameState = {
           ...game,
           currentPlayer: playerID,
-          playedQuestions: playedQuestions,
           players: { ...game.players, [playerID]: { ...player, score: player.score + question.points } },
-          roundIndex: roundIndex,
-          state: {
-            name: stateName,
-            state: {},
-          },
         };
+
+        markQuestionAsPlayed(nextGameState, { questionIndex: event.questionIndex, themeIndex: event.themeIndex });
+        return nextGameState;
       });
     });
 
@@ -164,6 +209,7 @@ export const GamePage = () => {
     return () => {
       websocketManager.off('question-chosen');
       websocketManager.off('buzz-in-allowed');
+      websocketManager.off('question-timed-out');
       websocketManager.off('buzzed-in');
       websocketManager.off('answer-rejected');
       websocketManager.off('answer-accepted');
@@ -242,6 +288,7 @@ export const GamePage = () => {
     switch (state.name) {
       case 'buzzing-in':
         if (!isHost) {
+          // TODO: Hide if player have already buzzed in.
           return <button onClick={onBuzzIn} type="button">Buzz In</button>;
         }
 

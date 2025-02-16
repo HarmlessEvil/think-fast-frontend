@@ -47,7 +47,7 @@ export const gameSnapshotSchema = z.object({
       return null;
     }
 
-    const set = new Set(questions);
+    const set = new Set(questions.map(q => `${q.themeIndex}:${q.questionIndex}`));
     if (set.size !== questions.length) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
