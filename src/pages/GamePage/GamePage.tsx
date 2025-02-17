@@ -287,8 +287,7 @@ export const GamePage = () => {
     const state = game.state;
     switch (state.name) {
       case 'buzzing-in':
-        if (!isHost) {
-          // TODO: Hide if player have already buzzed in.
+        if (!isHost && !(me.id in state.state.buzzedIn)) {
           return <button onClick={onBuzzIn} type="button">Buzz In</button>;
         }
 
