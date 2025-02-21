@@ -17,15 +17,15 @@ type Theme = {
 }
 
 type Props = {
+  disabled?: boolean,
   onQuestionChosen: (question: Question) => void
   playedQuestions: Set<string>
   themes: Theme[]
 }
 
-// TODO: Show which player selects a question
-
 export const QuestionBoard = (
   {
+    disabled = false,
     onQuestionChosen,
     playedQuestions,
     themes,
@@ -58,6 +58,7 @@ export const QuestionBoard = (
           return (
             <QuestionValue
               key={questionID}
+              disabled={disabled}
               isPlayed={playedQuestions.has(questionID)}
               questionID={questionID}
               score={question.points}

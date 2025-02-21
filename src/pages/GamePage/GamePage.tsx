@@ -261,6 +261,7 @@ export const GamePage = () => {
     switch (state.name) {
       case 'question-selection':
         return <QuestionBoard
+          disabled={game.currentPlayer !== me.id}
           onQuestionChosen={onQuestion}
           playedQuestions={game.playedQuestions ?? new Set()}
           themes={game.pack.rounds[game.roundIndex].themes}
@@ -313,7 +314,10 @@ export const GamePage = () => {
         {game.state.name !== 'game-over' && <p>Round {game.roundIndex + 1}</p>}
         <div className={styles.score}>
           {Object.values(game.players).map((player) => (
-            <span key={player.profile.id}>{player.profile.username}: {player.score}</span>
+            <span key={player.profile.id}>
+              {player.profile.id === game.currentPlayer && '(c)'} {player.profile.username}: {player.score}
+              {player.profile.id === me.id && ' (you)'}
+            </span>
           ))}
         </div>
       </header>
