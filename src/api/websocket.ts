@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import { z } from 'zod';
 import { gameSnapshotSchema, playerProfileSchema } from './schemas.ts';
+import { redirectToLogin } from './client.ts';
 
 export class WebsocketManager {
   private isClosed: boolean = false;
@@ -36,7 +37,6 @@ export class WebsocketManager {
     this.timeout = null;
     this.socket = new WebSocket(this.url);
 
-    // TODO: Handle HTTP 401 by redirecting to login, and 404 by exposing it to the consumer
     this.socket.onmessage = (event) => this.handleMessage(event);
     this.socket.onclose = (event) => this.handleClose(event);
   }
@@ -61,6 +61,10 @@ export class WebsocketManager {
   }
 
   private handleClose(event: CloseEvent) {
+    if (event.wasClean && event.code === CloseStatus.Unauthenticated) {
+      redirectToLogin();
+    }
+
     this.closeHandler?.(this.isClosed, event);
 
     if (!this.isClosed && !event.wasClean) { // retry only server-side unexpected close
@@ -200,5 +204,19 @@ const gameEventSchema = z.union([
     }),
   }),
 ]);
+
+/**
+ * Known websocket close statuses.
+ */
+export enum CloseStatus {
+  /**
+   * Client needs to be authenticated.
+   */
+  Unauthenticated = 3_000,
+  /**
+   * Resource requested by client is not found.
+   */
+  NotFound = 3_001
+}
 
 export const WebsocketContext = createContext<WebsocketManager | null>(null);

@@ -1,6 +1,14 @@
 import { QueryClient } from '@tanstack/react-query';
 import urlJoin from 'proper-url-join';
 
+export const redirectToLogin = (): never => {
+  const url = new URL('/login', window.location.origin);
+  url.searchParams.set('redirect', encodeURI(window.location.pathname));
+
+  window.location.assign(url);
+  throw new Error('Unauthorized');
+};
+
 export const request = async <T>(
   endpoint: string,
   options: RequestInit = {},
@@ -15,11 +23,7 @@ export const request = async <T>(
   });
 
   if (response.status === 401) {
-    const url = new URL('/login', window.location.origin);
-    url.searchParams.set('redirect', encodeURI(window.location.pathname));
-
-    window.location.assign(url);
-    throw new Error('Unauthorized');
+    redirectToLogin();
   }
 
   if (!response.ok) {
