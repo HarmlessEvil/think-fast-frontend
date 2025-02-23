@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const questionContentItemSchema = z.object({
+  text: z.string(),
+  type: z.string(),
+});
+
 export const packSchema = z.object({
   name: z.string(),
   rounds: z.array(z.object({
@@ -7,8 +12,8 @@ export const packSchema = z.object({
     themes: z.array(z.object({
       name: z.string(),
       questions: z.array(z.object({
+        content: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
         points: z.number(),
-        text: z.string(),
       })),
     })),
   })),
@@ -25,8 +30,8 @@ export const playerSchema = z.object({
 });
 
 const stateQuestionDisplaySchema = z.object({
+  questionContent: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
   questionIndex: z.number(),
-  questionText: z.string(),
   themeIndex: z.number(),
 });
 

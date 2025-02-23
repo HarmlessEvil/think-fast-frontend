@@ -12,7 +12,6 @@ type Theme = {
   name: string
   questions: {
     points: number
-    text: string
   }[]
 }
 

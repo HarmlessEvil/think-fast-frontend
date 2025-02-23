@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { z } from 'zod';
-import { gameSnapshotSchema, playerProfileSchema } from './schemas.ts';
+import { gameSnapshotSchema, playerProfileSchema, questionContentItemSchema } from './schemas.ts';
 import { redirectToLogin } from './client.ts';
 
 export class WebsocketManager {
@@ -153,8 +153,8 @@ const gameEventSchema = z.union([
   z.object({
     type: z.literal('question-chosen'),
     data: z.object({
+      questionContent: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
       questionIndex: z.number(),
-      questionText: z.string(),
       themeIndex: z.number(),
     }),
   }),

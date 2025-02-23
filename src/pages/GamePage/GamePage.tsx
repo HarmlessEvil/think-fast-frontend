@@ -20,6 +20,16 @@ type Theme = {
 const countQuestions = (themes: Theme[]): number =>
   themes.map(theme => theme.questions.length).reduce((a, b) => a + b, 0);
 
+const firstQuestionText = (content: {
+  text: string
+  type: string
+}[]): string => content.filter(it => it.text !== '' && it.type === '')[0]?.text ?? '';
+
+const firstQuestionImage = (content: {
+  text: string
+  type: string
+}[]): string => content.filter(it => it.text !== '' && it.type === 'image')[0]?.text ?? '';
+
 /**
  * Modifies the game to mark a given question as played.
  * It advances the game to the next round if the current round has no more question,
@@ -266,12 +276,27 @@ export const GamePage = () => {
           playedQuestions={game.playedQuestions ?? new Set()}
           themes={game.pack.rounds[game.roundIndex].themes}
         />;
-      case 'question-display':
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex].points} {state.state.questionText}</p>;
-      case 'buzzing-in':
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {state.state.stateQuestionDisplay.questionText}</p>;
-      case 'answer-evaluation':
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {state.state.stateBuzzingIn.stateQuestionDisplay.questionText}</p>;
+      case 'question-display': {
+        const question = state.state.questionContent;
+
+        const image = firstQuestionImage(question);
+        const text = firstQuestionText(question);
+
+        return (
+          <>
+            <p>{game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex].points} {text}</p>
+            {image && <img src={image} alt={text}/>}
+          </>
+        );
+      }
+      case 'buzzing-in': {
+        const question = state.state.stateQuestionDisplay.questionContent;
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>;
+      }
+      case 'answer-evaluation': {
+        const question = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>;
+      }
       case 'game-over':
         return <p>Thanks for playing! Now you can return to lobby if you want to play more.</p>;
       default:
@@ -295,10 +320,12 @@ export const GamePage = () => {
         break;
       case 'answer-evaluation':
         if (isHost) {
-          return [
-            <button key="accept" type="button" onClick={onAcceptAnswer}>Accept answer</button>,
-            <button key="reject" type="button" onClick={onRejectAnswer}>Reject answer</button>,
-          ];
+          return (
+            <>
+              <button type="button" onClick={onAcceptAnswer}>Accept answer</button>
+              <button type="button" onClick={onRejectAnswer}>Reject answer</button>
+            </>
+          );
         }
 
         break;
