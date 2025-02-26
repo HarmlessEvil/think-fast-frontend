@@ -53,3 +53,9 @@ dist-ssr
 
 # Editor-based Rest Client
 .idea/httpRequests
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

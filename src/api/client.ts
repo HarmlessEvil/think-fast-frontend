@@ -2,11 +2,15 @@ import { QueryClient } from '@tanstack/react-query';
 import urlJoin from 'proper-url-join';
 
 export const redirectToLogin = (): never => {
+  if (window.location.pathname === '/login') {
+    throw new Error('Unauthenticated');
+  }
+
   const url = new URL('/login', window.location.origin);
   url.searchParams.set('redirect', encodeURI(window.location.pathname));
 
   window.location.assign(url);
-  throw new Error('Unauthorized');
+  throw new Error('Unauthenticated');
 };
 
 export const request = async <T>(

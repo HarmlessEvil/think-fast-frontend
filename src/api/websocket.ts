@@ -6,7 +6,7 @@ import { redirectToLogin } from './client.ts';
 export class WebsocketManager {
   private isClosed: boolean = false;
   private socket: WebSocket | null = null;
-  private timeout: number | null = null;
+  private timeout: ReturnType<typeof setTimeout> | null = null;
 
   private readonly handlers: { [E in GameEvent as E['type']]?: (data: E['data']) => void } = {};
   private closeHandler: ((closedByClient: boolean, event: CloseEvent) => void) | null = null;

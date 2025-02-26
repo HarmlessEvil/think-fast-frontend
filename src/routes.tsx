@@ -12,7 +12,7 @@ import {
   loader as lobbyPageLayoutLoader,
 } from './pages/LobbyPageLayout/LobbyPageLayoutRoute.ts';
 import { LoginPage } from './pages/LoginPage/LoginPage.tsx';
-import { action as loginPageAction } from './pages/LoginPage/LoginPageRoute.ts';
+import { action as loginPageAction, loader as loginPageLoder } from './pages/LoginPage/LoginPageRoute.ts';
 
 export const router = createBrowserRouter([
   {
@@ -28,6 +28,7 @@ export const router = createBrowserRouter([
         path: 'login',
         element: <LoginPage/>,
         action: loginPageAction,
+        loader: loginPageLoder,
       },
       {
         id: 'lobby-layout',

@@ -24,7 +24,7 @@ export const LoginPage = () => {
             </label>
             <ErrorMessage name="username"/>
 
-            <button>Login</button>
+            <button type="submit">Login</button>
           </Form>
         )}
       </Formik>
