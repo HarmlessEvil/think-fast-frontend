@@ -1,32 +1,39 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { LobbyPage } from './LobbyPage.tsx';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { meQueryOptions } from '../../components/Auth/api.ts';
+import { server } from '../../mocks/node.ts';
+import { http, HttpResponse } from 'msw';
 
-vi.mock('@tanstack/react-query', async () => {
-  const original = await vi.importActual('@tanstack/react-query');
-  return {
-    ...original,
-    useQuery: vi.fn(() => ({ data: { id: 'test', username: 'Alice' } })),
-  };
-});
+server.use(http.get('/api/me', () => {
+  return HttpResponse.json({
+    id: 'test',
+    username: 'Alice',
+  });
+}));
 
 describe('LobbyPage', () => {
   test('renders lobby with players', async () => {
+    const queryClient = new QueryClient();
     const router = createMemoryRouter([
       {
         path: '/',
         element: <LobbyPage/>,
-        loader: () => ({
-          players: {
-            test: {
-              profile: {
-                id: 'test',
-                username: 'Alice',
+        loader: async () => {
+          await queryClient.prefetchQuery(meQueryOptions);
+          return {
+            players: {
+              test: {
+                profile: {
+                  id: 'test',
+                  username: 'Alice',
+                },
               },
             },
-          },
-        }),
+          };
+        },
       },
     ], {
       initialEntries: ['/'],
@@ -35,19 +42,28 @@ describe('LobbyPage', () => {
       },
     });
 
-    render(<RouterProvider router={router} future={{ v7_startTransition: true }}/>);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+      </QueryClientProvider>,
+    );
+
     expect(await screen.findByText(/^Alice/)).toBeInTheDocument();
   });
 
   test('renders start game button', async () => {
+    const queryClient = new QueryClient();
     const router = createMemoryRouter([
       {
         path: '/',
         element: <LobbyPage/>,
-        loader: () => ({
-          host: 'test',
-          players: {},
-        }),
+        loader: async () => {
+          await queryClient.prefetchQuery(meQueryOptions);
+          return {
+            host: 'test',
+            players: {},
+          };
+        },
       },
     ], {
       initialEntries: ['/'],
@@ -56,18 +72,27 @@ describe('LobbyPage', () => {
       },
     });
 
-    render(<RouterProvider router={router} future={{ v7_startTransition: true }}/>);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+      </QueryClientProvider>,
+    );
+
     expect(await screen.findByRole('button', { name: 'Start Game' })).toBeInTheDocument();
   });
 
   test('renders lobby code', async () => {
+    const queryClient = new QueryClient();
     const router = createMemoryRouter([
       {
         path: '/:lobby',
         element: <LobbyPage/>,
-        loader: () => ({
-          players: {},
-        }),
+        loader: async () => {
+          await queryClient.prefetchQuery(meQueryOptions);
+          return {
+            players: {},
+          };
+        },
       },
     ], {
       initialEntries: ['/test-lobby'],
@@ -76,7 +101,12 @@ describe('LobbyPage', () => {
       },
     });
 
-    render(<RouterProvider router={router} future={{ v7_startTransition: true }}/>);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+      </QueryClientProvider>,
+    );
+
     expect(await screen.findByText(/test-lobby$/)).toBeInTheDocument();
   });
 });
