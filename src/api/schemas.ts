@@ -36,7 +36,7 @@ const stateQuestionDisplaySchema = z.object({
 });
 
 const stateBuzzingInSchema = z.object({
-  buzzedIn: z.record(z.date()),
+  buzzedIn: z.record(z.coerce.date()),
   stateQuestionDisplay: stateQuestionDisplaySchema,
 });
 

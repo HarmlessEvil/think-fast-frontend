@@ -295,7 +295,10 @@ export const GamePage = () => {
       }
       case 'answer-evaluation': {
         const question = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>;
+        return (<>
+          <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>
+          <p>{game.players[state.state.player].profile.username} answers</p>
+        </>);
       }
       case 'game-over':
         return <p>Thanks for playing! Now you can return to lobby if you want to play more.</p>;
