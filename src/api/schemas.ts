@@ -14,6 +14,7 @@ export const packSchema = z.object({
       questions: z.array(z.object({
         content: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
         points: z.number(),
+        rightAnswer: z.string().nullish(),
       })),
     })),
   })),

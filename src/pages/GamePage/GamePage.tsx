@@ -277,10 +277,10 @@ export const GamePage = () => {
           themes={game.pack.rounds[game.roundIndex].themes}
         />;
       case 'question-display': {
-        const question = state.state.questionContent;
+        const questionContent = state.state.questionContent;
 
-        const image = firstQuestionImage(question);
-        const text = firstQuestionText(question);
+        const image = firstQuestionImage(questionContent);
+        const text = firstQuestionText(questionContent);
 
         return (
           <>
@@ -290,14 +290,17 @@ export const GamePage = () => {
         );
       }
       case 'buzzing-in': {
-        const question = state.state.stateQuestionDisplay.questionContent;
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>;
+        const questionContent = state.state.stateQuestionDisplay.questionContent;
+        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(questionContent)}</p>;
       }
       case 'answer-evaluation': {
-        const question = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;
+        const questionContent = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;
+        const question = game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex];
+
         return (<>
-          <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex].points} {firstQuestionText(question)}</p>
+          <p>{question.points} {firstQuestionText(questionContent)}</p>
           <p>{game.players[state.state.player].profile.username} answers</p>
+          {isHost && <p>Right answer is: {question.rightAnswer}</p>}
         </>);
       }
       case 'game-over':
