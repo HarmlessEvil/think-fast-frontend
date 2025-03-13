@@ -1,7 +1,7 @@
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { withZodSchema } from 'formik-validator-zod';
 import { useSubmit } from 'react-router-dom';
-import { schema } from '../../components/Auth/LoginSchema.ts';
+import { schema } from '../../components/auth/LoginSchema.ts';
 import styles from './LoginPage.module.css';
 
 export const LoginPage = () => {

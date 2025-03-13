@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { meQueryOptions } from '../../components/Auth/api.ts';
+import { meQueryOptions } from '../../components/auth/api.ts';
 import { render, screen } from '@testing-library/react';
 import { GamePage } from './GamePage.tsx';
 import { server } from '../../mocks/node.ts';

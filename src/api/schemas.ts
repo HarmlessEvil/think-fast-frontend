@@ -31,6 +31,7 @@ export const playerSchema = z.object({
 });
 
 const stateQuestionDisplaySchema = z.object({
+  buzzInAt: z.coerce.date(),
   questionContent: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
   questionIndex: z.number(),
   themeIndex: z.number(),
@@ -39,6 +40,7 @@ const stateQuestionDisplaySchema = z.object({
 const stateBuzzingInSchema = z.object({
   buzzedIn: z.record(z.coerce.date()),
   stateQuestionDisplay: stateQuestionDisplaySchema,
+  timeoutAt: z.coerce.date(),
 });
 
 export const gameSnapshotSchema = z.object({

@@ -5,7 +5,7 @@ import { WebSocketRoute } from '@playwright/test';
 test.describe('game tests', () => {
   test('player who buzzes in is displayed as answering', async ({ page, worker }) => {
     await worker.use(http.get('/api/me', () => HttpResponse.json({
-        id: 'test-user',
+      id: 'test-player',
         name: 'John',
       }),
     ));
@@ -31,6 +31,7 @@ test.describe('game tests', () => {
         state: {
           buzzedIn: {},
           stateQuestionDisplay: {
+            buzzInAt: new Date(),
             questionContent: [{
               text: 'Which content should a question have?',
               type: '',
@@ -38,12 +39,13 @@ test.describe('game tests', () => {
             questionIndex: 0,
             themeIndex: 0,
           },
+          timeoutAt: new Date(Date.now() + 10_000),
         },
       },
       players: {
-        'test-user': {
+        'test-player': {
           profile: {
-            id: 'test-user',
+            id: 'test-player',
             username: 'John',
           },
           score: 0,
@@ -62,7 +64,7 @@ test.describe('game tests', () => {
           ws.send(JSON.stringify({
             type: 'buzzed-in',
             data: {
-              playerID: 'test-user',
+              playerID: 'test-player',
             },
           }));
         }
@@ -114,6 +116,7 @@ test.describe('game tests', () => {
             state: {
               buzzedIn: {},
               stateQuestionDisplay: {
+                buzzInAt: new Date(),
                 questionContent: [{
                   text: 'Which content should a question have?',
                   type: '',
@@ -121,12 +124,13 @@ test.describe('game tests', () => {
                 questionIndex: 0,
                 themeIndex: 0,
               },
+              timeoutAt: new Date(Date.now() + 10_000),
             },
           },
           players: {
-            'test-user': {
+            'test-player': {
               profile: {
-                id: 'test-user',
+                id: 'test-player',
                 username: 'John',
               },
               score: 0,
@@ -149,7 +153,7 @@ test.describe('game tests', () => {
               r.send(JSON.stringify({
                 type: 'buzzed-in',
                 data: {
-                  playerID: 'test-user',
+                  playerID: 'test-player',
                 },
               }));
             }
@@ -159,7 +163,7 @@ test.describe('game tests', () => {
               r.send(JSON.stringify({
                 type: 'answer-accepted',
                 data: {
-                  playerID: 'test-user',
+                  playerID: 'test-player',
                   questionIndex: 0,
                   themeIndex: 0,
                 },
@@ -202,5 +206,75 @@ test.describe('game tests', () => {
 
     await test.expect(hostPage.getByText('Right answer is: Informative.')).not.toBeVisible();
     await test.expect(playerPage.getByText('Right answer is: Informative.')).not.toBeVisible();
+  });
+
+  test('player can see timer until buzz-in', async ({ page, worker }) => {
+    await worker.use(http.get('/api/me', () => HttpResponse.json({
+        id: 'test-player',
+        name: 'John',
+      }),
+    ));
+
+    await worker.use(http.get('/api/lobby/test-lobby/game', () => HttpResponse.json({
+      currentPlayer: 'test-player',
+      host: 'test-host',
+      pack: {
+        name: 'Demo',
+        rounds: [{
+          name: 'Test Round 1',
+          themes: [{
+            name: 'Theme 1',
+            questions: [{
+              points: 100,
+            }],
+          }],
+        }],
+      },
+      playedQuestions: [],
+      state: {
+        name: 'question-display',
+        state: {
+          buzzInAt: new Date(Date.now() + 2_000),
+          questionContent: [{
+            text: 'Which content should a question have?',
+            type: '',
+          }],
+          questionIndex: 0,
+          themeIndex: 0,
+        },
+      },
+      players: {
+        'test-player': {
+          profile: {
+            id: 'test-player',
+            username: 'John',
+          },
+          score: 0,
+        },
+      },
+      roundIndex: 0,
+    })));
+
+    let ws: WebSocketRoute | null = null;
+    await page.routeWebSocket(new RegExp('/ws/lobby/test-lobby$'), wsr => {
+      ws = wsr;
+    });
+
+    await page.goto('/lobby/test-lobby/game');
+
+    await test.expect(page.getByRole('button', { name: 'Buzz in' })).not.toBeVisible();
+    await test.expect(page.getByText('Prepare to buzz-in in: 2 seconds')).toBeVisible();
+
+    await page.waitForTimeout(2_000);
+    await test.expect(page.getByText('Prepare to buzz-in in: 0 seconds')).toBeVisible();
+
+    ws.send(JSON.stringify({
+      type: 'buzz-in-allowed',
+      data: {
+        timeoutAt: new Date(Date.now() + 2_000),
+      },
+    }));
+
+    await test.expect(page.getByRole('button', { name: 'Buzz in' })).toBeVisible();
   });
 });

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { LobbyPage } from './LobbyPage.tsx';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { meQueryOptions } from '../../components/Auth/api.ts';
+import { meQueryOptions } from '../../components/auth/api.ts';
 import { server } from '../../mocks/node.ts';
 import { http, HttpResponse } from 'msw';
 

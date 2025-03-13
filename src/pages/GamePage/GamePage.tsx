@@ -2,11 +2,12 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { useLoaderData, useNavigate, useParams } from 'react-router-dom';
 import { WebsocketContext } from '../../api/websocket.ts';
 import styles from './GamePage.module.css';
-import { Question, QuestionBoard } from '../../components/Game/QuestionBoard.tsx';
+import { Question, QuestionBoard } from '../../components/game/QuestionBoard.tsx';
 import { useQuery } from '@tanstack/react-query';
-import { meQueryOptions } from '../../components/Auth/api.ts';
-import { exitToLobby } from '../../components/Game/api.ts';
+import { meQueryOptions } from '../../components/auth/api.ts';
+import { exitToLobby } from '../../components/game/api.ts';
 import { GameSnapshot } from '../../api/types.ts';
+import { Timer } from '../../components/game/Timer.tsx';
 
 type QuestionIndex = {
   questionIndex: number
@@ -96,7 +97,7 @@ export const GamePage = () => {
       }));
     });
 
-    websocketManager.on('buzz-in-allowed', () => {
+    websocketManager.on('buzz-in-allowed', ({ timeoutAt }) => {
       setGame(game => {
         if (game.state.name !== 'question-display') {
           throw new Error('unexpected state');
@@ -109,6 +110,7 @@ export const GamePage = () => {
             state: {
               buzzedIn: {},
               stateQuestionDisplay: game.state.state,
+              timeoutAt: timeoutAt,
             },
           },
         };
@@ -141,8 +143,8 @@ export const GamePage = () => {
             state: {
               player: event.playerID,
               stateBuzzingIn: {
+                ...game.state.state,
                 buzzedIn: { ...game.state.state.buzzedIn, [event.playerID]: new Date() },
-                stateQuestionDisplay: game.state.state.stateQuestionDisplay,
               },
             },
           },
@@ -166,7 +168,8 @@ export const GamePage = () => {
         };
 
         const stateBuzzingIn = game.state.state.stateBuzzingIn;
-        const isQuestionSkipped = Object.keys(stateBuzzingIn.buzzedIn).length >= Object.keys(game.players).length;
+        const isQuestionSkipped = stateBuzzingIn.timeoutAt.getTime() <= Date.now()
+          || Object.keys(stateBuzzingIn.buzzedIn).length >= Object.keys(game.players).length;
 
         if (isQuestionSkipped) {
           markQuestionAsPlayed(nextGameState, { questionIndex: event.questionIndex, themeIndex: event.themeIndex });
@@ -286,12 +289,22 @@ export const GamePage = () => {
           <>
             <p>{game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex].points} {text}</p>
             {image && <img src={image} alt={text}/>}
+            <p>
+              Prepare to buzz-in in: <Timer until={state.state.buzzInAt}/>
+            </p>
           </>
         );
       }
       case 'buzzing-in': {
         const questionContent = state.state.stateQuestionDisplay.questionContent;
-        return <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(questionContent)}</p>;
+        return (
+          <>
+            <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(questionContent)}</p>
+            <p>
+              Timeout in: <Timer until={state.state.timeoutAt}/>
+            </p>
+          </>
+        );
       }
       case 'answer-evaluation': {
         const questionContent = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;

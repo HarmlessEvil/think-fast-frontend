@@ -1,5 +1,5 @@
 import { ActionFunction, Params } from 'react-router-dom';
-import { getLobby, startGame } from '../../components/Lobby/api.ts';
+import { getLobby, startGame } from '../../components/lobby/api.ts';
 
 export const action: ActionFunction = async ({ params }: { params: Params<'lobby'> }) => {
   await startGame(params.lobby!);

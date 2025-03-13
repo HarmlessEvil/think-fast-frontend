@@ -1,6 +1,6 @@
 import { ActionFunction, redirect } from 'react-router-dom';
-import { login, meQueryOptions } from '../../components/Auth/api.ts';
-import { schema } from '../../components/Auth/LoginSchema.ts';
+import { login, meQueryOptions } from '../../components/auth/api.ts';
+import { schema } from '../../components/auth/LoginSchema.ts';
 import { queryClient } from '../../api/client.ts';
 
 const defaultRedirect = '/';

@@ -153,6 +153,7 @@ const gameEventSchema = z.union([
   z.object({
     type: z.literal('question-chosen'),
     data: z.object({
+      buzzInAt: z.coerce.date(),
       questionContent: z.array(questionContentItemSchema).nullish().transform(c => c ?? []),
       questionIndex: z.number(),
       themeIndex: z.number(),
@@ -161,7 +162,9 @@ const gameEventSchema = z.union([
 
   z.object({
     type: z.literal('buzz-in-allowed'),
-    data: z.object({}),
+    data: z.object({
+      timeoutAt: z.coerce.date(),
+    }),
   }),
 
   z.object({
