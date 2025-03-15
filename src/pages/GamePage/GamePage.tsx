@@ -297,12 +297,13 @@ export const GamePage = () => {
       }
       case 'buzzing-in': {
         const questionContent = state.state.stateQuestionDisplay.questionContent;
+        const question = game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex];
+
         return (
           <>
-            <p>{game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex].points} {firstQuestionText(questionContent)}</p>
-            <p>
-              Timeout in: <Timer until={state.state.timeoutAt}/>
-            </p>
+            <p>{question.points} {firstQuestionText(questionContent)}</p>
+            {isHost && <p>Right answer is: {question.rightAnswer}</p>}
+            <p>Timeout in: <Timer until={state.state.timeoutAt}/></p>
           </>
         );
       }

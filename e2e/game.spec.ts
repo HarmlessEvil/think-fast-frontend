@@ -195,6 +195,7 @@ test.describe('game tests', () => {
     });
 
     await hostPage.goto('/lobby/test-lobby/game');
+    await test.expect(hostPage.getByText('Right answer is: Informative.')).toBeVisible();
 
     await playerPage.goto('/lobby/test-lobby/game');
     await playerPage.getByRole('button', { name: 'Buzz in' }).click();
