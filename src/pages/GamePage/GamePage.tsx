@@ -282,12 +282,15 @@ export const GamePage = () => {
       case 'question-display': {
         const questionContent = state.state.questionContent;
 
+        const theme = game.pack.rounds[game.roundIndex].themes[state.state.themeIndex];
+
         const image = firstQuestionImage(questionContent);
         const text = firstQuestionText(questionContent);
 
         return (
           <>
-            <p>{game.pack.rounds[game.roundIndex].themes[state.state.themeIndex].questions[state.state.questionIndex].points} {text}</p>
+            <p>Theme: {theme.name}</p>
+            <p>{theme.questions[state.state.questionIndex].points} {text}</p>
             {image && <img src={image} alt={text}/>}
             <p>
               Prepare to buzz-in in: <Timer until={state.state.buzzInAt}/>
@@ -297,10 +300,13 @@ export const GamePage = () => {
       }
       case 'buzzing-in': {
         const questionContent = state.state.stateQuestionDisplay.questionContent;
-        const question = game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex].questions[state.state.stateQuestionDisplay.questionIndex];
+
+        const theme = game.pack.rounds[game.roundIndex].themes[state.state.stateQuestionDisplay.themeIndex];
+        const question = theme.questions[state.state.stateQuestionDisplay.questionIndex];
 
         return (
           <>
+            <p>Theme: {theme.name}</p>
             <p>{question.points} {firstQuestionText(questionContent)}</p>
             {isHost && <p>Right answer is: {question.rightAnswer}</p>}
             <p>Timeout in: <Timer until={state.state.timeoutAt}/></p>
@@ -309,9 +315,12 @@ export const GamePage = () => {
       }
       case 'answer-evaluation': {
         const questionContent = state.state.stateBuzzingIn.stateQuestionDisplay.questionContent;
-        const question = game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex].questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex];
+
+        const theme = game.pack.rounds[game.roundIndex].themes[state.state.stateBuzzingIn.stateQuestionDisplay.themeIndex];
+        const question = theme.questions[state.state.stateBuzzingIn.stateQuestionDisplay.questionIndex];
 
         return (<>
+          <p>Theme: {theme.name}</p>
           <p>{question.points} {firstQuestionText(questionContent)}</p>
           <p>{game.players[state.state.player].profile.username} answers</p>
           {isHost && <p>Right answer is: {question.rightAnswer}</p>}

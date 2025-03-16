@@ -74,4 +74,61 @@ describe('GamePage', () => {
 
     expect(await screen.findByText('Alice answers')).toBeInTheDocument();
   });
+
+  test('shows theme name', async () => {
+    const queryClient = new QueryClient();
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: <GamePage/>,
+        loader: async () => {
+          await queryClient.prefetchQuery(meQueryOptions);
+          return {
+            pack: {
+              name: 'Demo',
+              rounds: [{
+                themes: [{
+                  name: 'Board Games',
+                  questions: [{
+                    points: 100,
+                  }],
+                }],
+              }],
+            },
+            state: {
+              name: 'question-display',
+              state: {
+                buzzInAt: new Date(),
+                questionContent: [{ text: 'Which content should a question have?' }],
+                questionIndex: 0,
+                themeIndex: 0,
+              },
+            },
+            players: {
+              test: {
+                profile: {
+                  id: 'test',
+                  username: 'Alice',
+                },
+              },
+            },
+            roundIndex: 0,
+          };
+        },
+      },
+    ], {
+      initialEntries: ['/'],
+      future: {
+        v7_relativeSplatPath: true,
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText('Theme: Board Games')).toBeInTheDocument();
+  });
 });
