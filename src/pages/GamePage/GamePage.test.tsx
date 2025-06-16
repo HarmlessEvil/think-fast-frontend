@@ -58,17 +58,15 @@ describe('GamePage', () => {
             roundIndex: 0,
           };
         },
+        hydrateFallbackElement: <></>,
       },
     ], {
       initialEntries: ['/'],
-      future: {
-        v7_relativeSplatPath: true,
-      },
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+        <RouterProvider router={router}/>
       </QueryClientProvider>,
     );
 
@@ -115,17 +113,15 @@ describe('GamePage', () => {
             roundIndex: 0,
           };
         },
+        hydrateFallbackElement: <></>,
       },
     ], {
       initialEntries: ['/'],
-      future: {
-        v7_relativeSplatPath: true,
-      },
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+        <RouterProvider router={router}/>
       </QueryClientProvider>,
     );
 

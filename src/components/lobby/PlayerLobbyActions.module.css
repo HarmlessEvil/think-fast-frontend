@@ -1,3 +1,5 @@
+@reference 'tailwindcss';
+
 .button {
     @apply w-full max-w-md mt-4 py-2 px-4 border;
 }

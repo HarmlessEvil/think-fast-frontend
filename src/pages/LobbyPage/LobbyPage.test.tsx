@@ -34,17 +34,15 @@ describe('LobbyPage', () => {
             },
           };
         },
+        hydrateFallbackElement: <></>,
       },
     ], {
       initialEntries: ['/'],
-      future: {
-        v7_relativeSplatPath: true,
-      },
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+        <RouterProvider router={router}/>
       </QueryClientProvider>,
     );
 
@@ -64,17 +62,15 @@ describe('LobbyPage', () => {
             players: {},
           };
         },
+        hydrateFallbackElement: <></>,
       },
     ], {
       initialEntries: ['/'],
-      future: {
-        v7_relativeSplatPath: true,
-      },
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+        <RouterProvider router={router}/>
       </QueryClientProvider>,
     );
 
@@ -93,17 +89,15 @@ describe('LobbyPage', () => {
             players: {},
           };
         },
+        hydrateFallbackElement: <></>,
       },
     ], {
       initialEntries: ['/test-lobby'],
-      future: {
-        v7_relativeSplatPath: true,
-      },
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} future={{ v7_startTransition: true }}/>
+        <RouterProvider router={router}/>
       </QueryClientProvider>,
     );
 

@@ -1,3 +1,5 @@
+@reference 'tailwindcss';
+
 .player-list {
     @apply w-full max-w-md border overflow-y-auto max-h-64;
 }
